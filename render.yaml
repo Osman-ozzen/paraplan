@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: butce-takip
+    runtime: node
+    buildCommand: npm install && npx vite build
+    startCommand: node server/index.js
+    envVars:
+      - key: NODE_VERSION
+        value: 20
