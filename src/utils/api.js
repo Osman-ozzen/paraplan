@@ -2,7 +2,10 @@
 // Hem sunucu (server/index.js) hem de Electron IPC üzerinden çalışır.
 // Telefon için: http://<bilgisayar-ip>:3001 adresinden erişilir.
 
-const SUNUCU_URL = `http://${window.location.hostname}:3001`;
+// Render'da (production) aynı origin kullanılır, geliştirmede 3001
+const SUNUCU_URL = window.location.port === '5173'
+  ? `http://${window.location.hostname}:3001`
+  : '';
 
 // Sunucu çalışıyor mu kontrol et
 async function sunucuVarMi() {
@@ -76,7 +79,7 @@ const api = {
   borclar: crud('borclar'),
   eticaret: crud('eticaret'),
   sirketGider: crud('sirketGider'),
-  vergiKdv: crud('vergiKdv'),
+  aylikGiderler: crud('aylikGiderler'),
 };
 
 export default api;

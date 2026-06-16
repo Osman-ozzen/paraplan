@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
-  PieChart, Pie, Cell, Tooltip as PieTooltip, Legend, ResponsiveContainer,
+  PieChart, Pie, Cell, Tooltip as PieTooltip, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as BarTooltip,
   LineChart, Line, Tooltip as LineTooltip,
 } from 'recharts';
@@ -64,17 +64,6 @@ export default function Raporlar({ kategoriler, kayitlar }) {
     const kat = kategoriler.find((k) => k.id === id);
     return kat ? kat.ad : 'Bilinmeyen';
   };
-
-  // Pasta verisi
-  const pastaVerisi = useMemo(() => {
-    const gruplar = {};
-    filtrelenmisKayitlar.forEach((k) => {
-      const ad = kategoriAdi(k.kategoriId);
-      if (!gruplar[ad]) gruplar[ad] = { ad, deger: 0 };
-      gruplar[ad].deger += k.tur === 'gelir' ? Number(k.tutar) : -Number(k.tutar);
-    });
-    return Object.values(gruplar).filter(g => g.deger !== 0);
-  }, [filtrelenmisKayitlar, kategoriler]);
 
   // Gider dağılımı pasta
   const giderPasta = useMemo(() => {
@@ -271,23 +260,44 @@ export default function Raporlar({ kategoriler, kayitlar }) {
         </div>
 
         <div className="grafik-alani" style={{ marginBottom: 0 }}>
-          <div className="grafik-baslik" style={{ marginBottom: 8 }}>
+          <div className="grafik-baslik" style={{ marginBottom: 12 }}>
             <h3>Net Bakiye (Kar/Zarar)</h3>
           </div>
-          {pastaVerisi.length === 0 ? (
-            <div className="bos-mesaj" style={{ padding: 20 }}>Veri yok</div>
-          ) : (
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie data={pastaVerisi} dataKey="deger" nameKey="ad"
-                  cx="50%" cy="50%" outerRadius={80}
-                  label={({ ad, deger }) => `${ad}`}>
-                  {pastaVerisi.map((_, i) => <Cell key={i} fill={RENKLER[i % RENKLER.length]} stroke="#fff" strokeWidth={2} />)}
-                </Pie>
-                <PieTooltip content={<OzelTooltip />} />
-              </PieChart>
-            </ResponsiveContainer>
-          )}
+          <div style={{ textAlign: 'center', padding: '8px 0' }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>
+              Bu Dönem
+            </div>
+            <div style={{
+              fontSize: 32, fontWeight: 900, fontFamily: 'var(--font-mono)',
+              color: ozet.karZarar >= 0 ? '#059669' : '#dc2626',
+              letterSpacing: -1,
+            }}>
+              {ozet.karZarar >= 0 ? '+' : ''}{tl(ozet.karZarar)}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 24, marginTop: 14 }}>
+              <div>
+                <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase', marginBottom: 2 }}>Gelir</div>
+                <div style={{ fontSize: 15, fontWeight: 800, fontFamily: 'var(--font-mono)', color: '#059669' }}>{tl(ozet.gelir)}</div>
+              </div>
+              <div style={{ width: 1, background: 'var(--border)' }} />
+              <div>
+                <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase', marginBottom: 2 }}>Gider</div>
+                <div style={{ fontSize: 15, fontWeight: 800, fontFamily: 'var(--font-mono)', color: '#dc2626' }}>{tl(ozet.gider)}</div>
+              </div>
+            </div>
+            {/* Oran çubuğu */}
+            {ozet.gelir + ozet.gider > 0 && (
+              <div style={{ marginTop: 14, background: '#f1f5f9', borderRadius: 6, height: 8, overflow: 'hidden', maxWidth: 240, marginLeft: 'auto', marginRight: 'auto' }}>
+                <div style={{
+                  width: `${(ozet.gelir / (ozet.gelir + ozet.gider)) * 100}%`,
+                  height: '100%',
+                  background: 'linear-gradient(90deg, #10b981, #34d399)',
+                  borderRadius: 6,
+                  transition: 'width 0.5s',
+                }} />
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

@@ -6,9 +6,9 @@ import Kategoriler from './components/Kategoriler';
 import Borclar from './components/Borclar';
 import ETicaret from './components/ETicaret';
 import SirketGiderleri from './components/SirketGiderleri';
-import VergiKdv from './components/VergiKdv';
-import Hesaplama from './components/Hesaplama';
+import AylikGiderler from './components/AylikGiderler';
 import api from './utils/api';
+import './App.css';
 
 // ─── ID Oluşturucu ─────────────────────────────────────────────────────────
 function idOlustur() {
@@ -27,7 +27,9 @@ export default function App() {
   const [borclar, setBorclar] = useState([]);
   const [eticaret, setETicaret] = useState([]);
   const [sirketGider, setSirketGider] = useState([]);
-  const [vergiKdv, setVergiKdv] = useState([]);
+  const [aylikGiderler, setAylikGiderler] = useState([]);
+  const [seciliAy, setSeciliAy] = useState(null);
+  const [mobileMenuAcik, setMobileMenuAcik] = useState(false);
 
   // ─── Veri Yükleme ─────────────────────────────────────────────────────────
   const verileriYukle = useCallback(async () => {
@@ -39,7 +41,7 @@ export default function App() {
         setBorclar(data.borclar || []);
         setETicaret(data.eticaret || []);
         setSirketGider(data.sirketGider || []);
-        setVergiKdv(data.vergiKdv || []);
+        setAylikGiderler(data.aylikGiderler || []);
       } else {
         throw new Error('Veri alınamadı');
       }
@@ -199,8 +201,7 @@ export default function App() {
     { id: 'borclar', etiket: 'Borçlar', ikon: '💳' },
     { id: 'eticaret', etiket: 'E-Ticaret', ikon: '🛒' },
     { id: 'sirket', etiket: 'Şirket Gider', ikon: '🏢' },
-    { id: 'vergi', etiket: 'Vergi / KDV', ikon: '🧾' },
-    { id: 'hesaplama', etiket: 'Hesaplama', ikon: '🔢' },
+    { id: 'aylikGider', etiket: 'Aylık Sabitler', ikon: '📆' },
     { id: 'raporlar', etiket: 'Raporlar', ikon: '📊' },
     { id: 'kategoriler', etiket: 'Hesap Planı', ikon: '📁' },
   ];
@@ -208,7 +209,7 @@ export default function App() {
   const sekmeAdlari = {
     anasayfa: 'Ana Defter', ekle: 'Fiş Kaydı', borclar: 'Borçlar',
     eticaret: 'E-Ticaret', sirket: 'Şirket Giderleri',
-    vergi: 'Vergi / KDV', hesaplama: 'Hesaplama',
+    aylikGider: 'Sabit Giderler',
     raporlar: 'Raporlar', kategoriler: 'Hesap Planı',
   };
 
@@ -225,11 +226,15 @@ export default function App() {
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="app">
+      {/* Mobil menü overlay */}
+      {mobileMenuAcik && <div className="mobile-overlay" onClick={() => setMobileMenuAcik(false)} />}
+
       {/* Sol Menü */}
-      <nav className="sidebar">
+      <nav className={`sidebar ${mobileMenuAcik ? 'mobile-open' : ''}`}>
         <div className="sidebar-logo">
           <div className="sidebar-logo-icon">B</div>
           <div className="sidebar-logo-text">Bütçe <span>Takip</span></div>
+          <button className="sidebar-kapat" onClick={() => setMobileMenuAcik(false)} aria-label="Menüyü Kapat">✕</button>
         </div>
 
         <ul className="sidebar-menu">
@@ -238,7 +243,7 @@ export default function App() {
             <li key={sekme.id}>
               <button
                 className={`sidebar-btn ${aktifSekme === sekme.id ? 'aktif' : ''}`}
-                onClick={() => setAktifSekme(sekme.id)}
+                onClick={() => { setAktifSekme(sekme.id); setMobileMenuAcik(false); }}
               >
                 <span className="ikon">{sekme.ikon}</span>
                 <span>{sekme.etiket}</span>
@@ -254,6 +259,14 @@ export default function App() {
 
       {/* Ana İçerik */}
       <main className="ana-icerik">
+        {/* Mobil hamburger */}
+        <div className="mobile-header">
+          <button className="mobile-hamburger" onClick={() => setMobileMenuAcik(true)} aria-label="Menüyü Aç">
+            <span /><span /><span />
+          </button>
+          <span className="mobile-baslik">{sekmeAdlari[aktifSekme] || 'Bütçe Takip'}</span>
+          <span style={{ width: 30 }} />
+        </div>
         {/* Bildirim */}
         {bildirim && (
           <div className={`bildirim ${bildirim.tur}`}>
@@ -273,6 +286,10 @@ export default function App() {
               kayitSil={kayitSil}
               sonEklenenId={sonEklenenId}
               duzenleBaslat={duzenleBaslat}
+              borclar={borclar}
+              aylikGiderler={aylikGiderler}
+              setAktifSekme={setAktifSekme}
+              setSeciliAy={setSeciliAy}
             />
           )}
           {aktifSekme === 'ekle' && (
@@ -290,13 +307,14 @@ export default function App() {
           {aktifSekme === 'eticaret' && (
             <ETicaret data={eticaret} api={api.eticaret} />
           )}
+          {aktifSekme === 'aylikGider' && (
+            <AylikGiderler data={aylikGiderler} api={api.aylikGiderler}
+              kayitEkle={kayitEkle} kategoriler={kategoriler}
+              seciliAy={seciliAy} setSeciliAy={setSeciliAy} />
+          )}
           {aktifSekme === 'sirket' && (
             <SirketGiderleri data={sirketGider} api={api.sirketGider} />
           )}
-          {aktifSekme === 'vergi' && (
-            <VergiKdv data={vergiKdv} api={api.vergiKdv} />
-          )}
-          {aktifSekme === 'hesaplama' && <Hesaplama />}
           {aktifSekme === 'raporlar' && (
             <Raporlar
               kategoriler={kategoriler}
