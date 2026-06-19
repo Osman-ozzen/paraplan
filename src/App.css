@@ -48,7 +48,7 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: var(--font); background: var(--bg-page); color: var(--text); line-height: 1.5; -webkit-font-smoothing: antialiased; overflow: hidden; height: 100vh; font-size: 13px; }
+body { font-family: var(--font); background: var(--bg-page); color: var(--text); line-height: 1.5; -webkit-font-smoothing: antialiased; overflow-x: hidden; overflow-y: auto; height: 100vh; font-size: 13px; }
 #root { height: 100vh; }
 
 .yukleniyor-ekrani {
@@ -446,6 +446,17 @@ td.tutar, th.tutar { text-align: right; }
 .grafik-baslik h3::before {
   content: ''; width: 4px; height: 16px;
   background: var(--primary-gradient); border-radius: 2px;
+}
+
+/* Grafik grid - 3 kolon, mobilde 1 kolon */
+.grafik-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.grafik-grid .grafik-alani {
+  margin-bottom: 0;
 }
 
 .grafik-tur-secimi {
@@ -1408,11 +1419,23 @@ td.tutar, th.tutar { text-align: right; }
     padding: 2px 6px !important;
   }
 
+  /* ─── Grafik Grid mobilde tek kolon ──────────────────────────────── */
+  .grafik-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
   /* ─── Mobil Grafik Düzeltmeleri ────────────────────────────────────── */
+  .grafik-alani {
+    overflow: hidden !important;
+    max-width: 100vw !important;
+  }
+
   .grafik-alani .recharts-wrapper {
     width: 100% !important;
     height: auto !important;
-    min-height: 180px;
+    min-height: 160px;
+    max-width: 100% !important;
   }
 
   .grafik-alani .recharts-surface {
@@ -1445,6 +1468,10 @@ td.tutar, th.tutar { text-align: right; }
     width: 120px !important;
     height: 120px !important;
   }
+  .recharts-pie {
+    transform: scale(0.85);
+    transform-origin: center center;
+  }
 
   /* Yatay bar chart etiketi kısalt */
   .grafik-alani .recharts-yAxis .recharts-text {
@@ -1468,6 +1495,65 @@ td.tutar, th.tutar { text-align: right; }
   /* Tooltip tooltip'leri mobilde daha küçük */
   .recharts-tooltip-wrapper {
     font-size: 10px !important;
+  }
+
+  /* Genel taşma önleme */
+  .ana-icerik {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+  }
+  .icerik-alani {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    padding: 12px 10px !important;
+  }
+  .app {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+  }
+  body {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+  }
+  #root {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+  }
+
+  /* Borç durumu pie chart + liste mobilde alt alta */
+  div[style*="flex: 1"][style*="minWidth: 160"] {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Tablo kaydırmayı düzgün yap */
+  .tablo-kapsayici {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tablo-kapsayici table {
+    min-width: 500px !important;
+  }
+
+  /* Panel grid mobilde max-width sınırla */
+  .panel-grid {
+    max-width: 100% !important;
+  }
+
+  /* Sayfa başlığı taşmasın */
+  .sayfa-baslik {
+    flex-wrap: wrap !important;
+    max-width: 100% !important;
+  }
+  .sayfa-baslik h2 {
+    word-break: break-word !important;
+  }
+
+  /* Donem filtresi taşmasın */
+  .donem-filtre {
+    flex-wrap: wrap !important;
+    max-width: 100% !important;
   }
 }
 

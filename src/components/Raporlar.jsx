@@ -156,9 +156,9 @@ export default function Raporlar({ kategoriler, kayitlar }) {
       </div>
 
       {/* 3 Grafik Yan Yana Üst Sıra */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginBottom: 18 }}>
+      <div className="grafik-grid">
         {/* Pasta - Gider Dağılımı */}
-        <div className="grafik-alani" style={{ marginBottom: 0 }}>
+        <div className="grafik-alani">
           <div className="grafik-baslik" style={{ marginBottom: 8 }}>
             <h3>Gider Dağılımı</h3>
           </div>
@@ -187,7 +187,7 @@ export default function Raporlar({ kategoriler, kayitlar }) {
         </div>
 
         {/* Pasta - Gelir Dağılımı */}
-        <div className="grafik-alani" style={{ marginBottom: 0 }}>
+        <div className="grafik-alani">
           <div className="grafik-baslik" style={{ marginBottom: 8 }}>
             <h3>Gelir Dağılımı</h3>
           </div>
@@ -216,7 +216,7 @@ export default function Raporlar({ kategoriler, kayitlar }) {
         </div>
 
         {/* Çubuk Grafik - Gelir/Gider Karşılaştırma */}
-        <div className="grafik-alani" style={{ marginBottom: 0 }}>
+        <div className="grafik-alani">
           <div className="grafik-baslik" style={{ marginBottom: 8 }}>
             <h3>Gelir / Gider</h3>
           </div>
