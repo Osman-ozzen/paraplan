@@ -1553,16 +1553,40 @@ td.tutar, th.tutar { text-align: right; }
 
   /* Pie chart mobilde küçülsün */
   .grafik-alani div[style*="width: 240px"] {
-    width: 140px !important;
-    height: 140px !important;
-  }
-  .grafik-alani div[style*="width: 180px"] {
     width: 120px !important;
     height: 120px !important;
+    flex-shrink: 0 !important;
+  }
+  .grafik-alani div[style*="width: 180px"] {
+    width: 100px !important;
+    height: 100px !important;
   }
   .recharts-pie {
-    transform: scale(0.85);
+    transform: scale(0.7);
     transform-origin: center center;
+  }
+  .grafik-alani div[style*="flex: 1"][style*="minWidth: 200"] {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+  .grafik-alani div[style*="flex: 1"][style*="minWidth: 200"] > div {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 2px !important;
+  }
+  .grafik-alani div[style*="flex: 1"][style*="minWidth: 200"] > div > div {
+    flex: 0 0 auto !important;
+    width: 50% !important;
+    padding: 3px 4px !important;
+    font-size: 9px !important;
+    border-bottom: none !important;
+  }
+  .grafik-alani div[style*="flex: 1"][style*="minWidth: 200"] > div > div span[style*="width: 90px"] {
+    width: auto !important;
+    font-size: 9px !important;
+  }
+  .grafik-alani div[style*="flex: 1"][style*="minWidth: 200"] > div > div span[style*="width: 36px"] {
+    width: auto !important;
   }
 
   /* Yatay bar chart etiketi kısalt */
