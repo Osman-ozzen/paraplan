@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const tl = (t) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(t);
 const fTarih = (t) => new Date(t).toLocaleDateString('tr-TR');
 
 export default function Borclar({ data, api }) {
   const [liste, setListe] = useState(data || []);
+  useEffect(() => { setListe(data || []); }, [data]);
   const [form, setForm] = useState({ alacakli: '', tutar: '', tarih: new Date().toISOString().split('T')[0], vadeTarihi: '', durum: 'odenmedi', aciklama: '' });
   const [ekleniyor, setEkleniyor] = useState(false);
   const [duzenlenen, setDuzenlenen] = useState(null);
@@ -15,20 +16,32 @@ export default function Borclar({ data, api }) {
     e.preventDefault();
     if (!form.alacakli || !form.tutar) return;
     setEkleniyor(true);
-    const sonuc = await (duzenlenen
-      ? api.guncelle({ ...form, id: duzenlenen.id, tutar: parseFloat(form.tutar) })
-      : api.ekle({ ...form, tutar: parseFloat(form.tutar) }));
-    if (sonuc.basarili) {
-      setListe(sonuc.borclar || sonuc[Object.keys(sonuc).find(k => k !== 'basarili')]);
-      setForm({ alacakli: '', tutar: '', tarih: new Date().toISOString().split('T')[0], vadeTarihi: '', durum: 'odenmedi', aciklama: '' });
-      setDuzenlenen(null);
+    try {
+      const sonuc = await (duzenlenen
+        ? api.guncelle({ ...form, id: duzenlenen.id, tutar: parseFloat(form.tutar) })
+        : api.ekle({ ...form, tutar: parseFloat(form.tutar) }));
+      if (sonuc.basarili) {
+        setListe(sonuc.borclar || sonuc[Object.keys(sonuc).find(k => k !== 'basarili')]);
+        setForm({ alacakli: '', tutar: '', tarih: new Date().toISOString().split('T')[0], vadeTarihi: '', durum: 'odenmedi', aciklama: '' });
+        setDuzenlenen(null);
+      }
+    } catch (err) {
+      console.error('Borç ekleme/güncelleme hatası:', err);
+    } finally {
+      setEkleniyor(false);
     }
-    setEkleniyor(false);
   };
 
   const duzenle = (item) => { setDuzenlenen(item); setForm({ alacakli: item.alacakli, tutar: String(item.tutar), tarih: item.tarih, vadeTarihi: item.vadeTarihi || '', durum: item.durum, aciklama: item.aciklama || '' }); };
 
-  const sil = async (id) => { const s = await api.sil(id); if (s.basarili) setListe(s.borclar || s[Object.keys(s).find(k => k !== 'basarili')]); };
+  const sil = async (id) => {
+    try {
+      const s = await api.sil(id);
+      if (s.basarili) setListe(s.borclar || s[Object.keys(s).find(k => k !== 'basarili')]);
+    } catch (err) {
+      console.error('Borç silme hatası:', err);
+    }
+  };
 
   const toplam = liste.reduce((t, b) => b.durum === 'odenmedi' ? t + Number(b.tutar) : t, 0);
   const odenen = liste.filter(b => b.durum === 'odendi').reduce((t, b) => t + Number(b.tutar), 0);

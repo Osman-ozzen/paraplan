@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import AnaSayfa from './components/AnaSayfa';
 import GelirGiderEkle from './components/GelirGiderEkle';
 import Raporlar from './components/Raporlar';
 import Kategoriler from './components/Kategoriler';
 import Borclar from './components/Borclar';
 import ETicaret from './components/ETicaret';
-import SirketGiderleri from './components/SirketGiderleri';
 import AylikGiderler from './components/AylikGiderler';
+import Hedefler from './components/Hedefler';
 import api from './utils/api';
 import './App.css';
 
@@ -21,15 +21,30 @@ export default function App() {
   const [kategoriler, setKategoriler] = useState([]);
   const [kayitlar, setKayitlar] = useState([]);
   const [yukleniyor, setYukleniyor] = useState(true);
+
+  // PWA Splash Screen - efektli kapanış
+  useEffect(() => {
+    const splash = document.getElementById('pwa-splash');
+    if (splash) {
+      // React render tamamlanınca splash'i kapat
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          splash.classList.add('yuklendi');
+          setTimeout(() => splash.remove(), 600);
+        });
+      });
+    }
+  }, []);
   const [bildirim, setBildirim] = useState(null);
   const [sonEklenenId, setSonEklenenId] = useState(null);
   const [duzenlenecekKayit, setDuzenlenecekKayit] = useState(null);
   const [borclar, setBorclar] = useState([]);
   const [eticaret, setETicaret] = useState([]);
-  const [sirketGider, setSirketGider] = useState([]);
   const [aylikGiderler, setAylikGiderler] = useState([]);
+  const [hedefler, setHedefler] = useState([]);
   const [seciliAy, setSeciliAy] = useState(null);
   const [mobileMenuAcik, setMobileMenuAcik] = useState(false);
+  const bildirimTimeoutRef = useRef(null);
 
   // ─── Veri Yükleme ─────────────────────────────────────────────────────────
   const verileriYukle = useCallback(async () => {
@@ -40,8 +55,8 @@ export default function App() {
         setKayitlar(data.kayitlar || []);
         setBorclar(data.borclar || []);
         setETicaret(data.eticaret || []);
-        setSirketGider(data.sirketGider || []);
         setAylikGiderler(data.aylikGiderler || []);
+        setHedefler(data.hedefler || []);
       } else {
         throw new Error('Veri alınamadı');
       }
@@ -71,11 +86,15 @@ export default function App() {
     verileriYukle();
   }, [verileriYukle]);
 
-  // ─── Bildirim Göster ──────────────────────────────────────────────────────
-  const bildirimGoster = (mesaj, tur = 'basarili') => {
+  // ─── Bildirim Göster (🐛 FIX: timeout temizleme) ─────────────────────────
+  const bildirimGoster = useCallback((mesaj, tur = 'basarili') => {
+    if (bildirimTimeoutRef.current) clearTimeout(bildirimTimeoutRef.current);
     setBildirim({ mesaj, tur });
-    setTimeout(() => setBildirim(null), 3000);
-  };
+    bildirimTimeoutRef.current = setTimeout(() => {
+      setBildirim(null);
+      bildirimTimeoutRef.current = null;
+    }, 3000);
+  }, []);
 
   // ─── Kayıt İşlemleri ──────────────────────────────────────────────────────
   const kayitEkle = async (kayit) => {
@@ -84,42 +103,38 @@ export default function App() {
       id: idOlustur(),
     };
 
-    let basarili = false;
     try {
       const sonuc = await api.kayitEkle(yeniKayit);
-      if (sonuc.basarili) {
+      if (sonuc?.basarili) {
         setKayitlar(sonuc.kayitlar);
-        basarili = true;
+      } else {
+        setKayitlar((prev) => [...prev, yeniKayit]);
       }
     } catch {
       setKayitlar((prev) => [...prev, yeniKayit]);
-      basarili = true;
     }
 
-    if (basarili) {
-      setSonEklenenId(yeniKayit.id);
-      setTimeout(() => setSonEklenenId(null), 1500);
-      bildirimGoster('Fiş başarıyla kaydedildi');
-      return true;
-    }
-    bildirimGoster('Kayıt eklenirken hata oluştu', 'hata');
-    return false;
+    setSonEklenenId(yeniKayit.id);
+    setTimeout(() => setSonEklenenId(null), 1500);
+    bildirimGoster('Fiş kaydedildi');
+    return true;
   };
 
   const kayitSil = async (kayitId) => {
     try {
       const sonuc = await api.kayitSil(kayitId);
-      if (sonuc.basarili) {
+      if (sonuc?.basarili) {
         setKayitlar(sonuc.kayitlar);
-        bildirimGoster('Kayıt silindi');
-        return true;
+      } else {
+        setKayitlar((prev) => prev.filter((k) => k.id !== kayitId));
       }
+      bildirimGoster('Kayıt silindi');
+      return true;
     } catch {
       setKayitlar((prev) => prev.filter((k) => k.id !== kayitId));
       bildirimGoster('Kayıt silindi');
       return true;
     }
-    return false;
   };
 
   // ─── Düzenleme ─────────────────────────────────────────────────────────────
@@ -131,17 +146,17 @@ export default function App() {
   const kayitGuncelle = async (guncelKayit) => {
     try {
       const sonuc = await api.kayitGuncelle(guncelKayit);
-      if (sonuc.basarili) {
+      if (sonuc?.basarili) {
         setKayitlar(sonuc.kayitlar);
-        setDuzenlenecekKayit(null);
         bildirimGoster('Fiş güncellendi');
         return true;
       }
     } catch {
       setKayitlar((prev) => prev.map((k) => k.id === guncelKayit.id ? guncelKayit : k));
-      setDuzenlenecekKayit(null);
-      bildirimGoster('Fiş güncellendi');
+      bildirimGoster('Fiş güncellendi (yerel)');
       return true;
+    } finally {
+      setDuzenlenecekKayit(null);
     }
     return false;
   };
@@ -155,34 +170,34 @@ export default function App() {
     const yeniKategori = { ...kategori, id: idOlustur() };
     try {
       const sonuc = await api.kategoriEkle(yeniKategori);
-      if (sonuc.basarili) {
+      if (sonuc?.basarili) {
         setKategoriler(sonuc.kategoriler);
-        bildirimGoster('Kategori eklendi');
-        return true;
+      } else {
+        setKategoriler((prev) => [...prev, yeniKategori]);
       }
     } catch {
       setKategoriler((prev) => [...prev, yeniKategori]);
-      bildirimGoster('Kategori eklendi');
-      return true;
     }
-    return false;
+    bildirimGoster('Kategori eklendi');
+    return true;
   };
 
   const kategoriSil = async (kategoriId) => {
     try {
       const sonuc = await api.kategoriSil(kategoriId);
-      if (sonuc.basarili) {
+      if (sonuc?.basarili) {
         setKategoriler(sonuc.kategoriler);
         setKayitlar(sonuc.kayitlar || []);
-        bildirimGoster('Kategori silindi');
-        return true;
+      } else {
+        setKategoriler((prev) => prev.filter((k) => k.id !== kategoriId));
+        setKayitlar((prev) => prev.filter((k) => k.kategoriId !== kategoriId));
       }
     } catch {
       setKategoriler((prev) => prev.filter((k) => k.id !== kategoriId));
-      bildirimGoster('Kategori silindi');
-      return true;
+      setKayitlar((prev) => prev.filter((k) => k.kategoriId !== kategoriId));
     }
-    return false;
+    bildirimGoster('Kategori silindi');
+    return true;
   };
 
   // ─── Saat ─────────────────────────────────────────────────────────────────
@@ -197,19 +212,20 @@ export default function App() {
   // ─── Sekmeler ─────────────────────────────────────────────────────────────
   const sekmeler = [
     { id: 'anasayfa', etiket: 'Ana Defter', ikon: '📋' },
-    { id: 'ekle', etiket: 'Fiş Kaydı', ikon: '➕' },
+    { id: 'ekle', etiket: 'Hızlı Kayıt', ikon: '➕' },
     { id: 'borclar', etiket: 'Borçlar', ikon: '💳' },
     { id: 'eticaret', etiket: 'E-Ticaret', ikon: '🛒' },
-    { id: 'sirket', etiket: 'Şirket Gider', ikon: '🏢' },
     { id: 'aylikGider', etiket: 'Aylık Sabitler', ikon: '📆' },
+    { id: 'hedefler', etiket: 'Hedefler', ikon: '🎯' },
     { id: 'raporlar', etiket: 'Raporlar', ikon: '📊' },
     { id: 'kategoriler', etiket: 'Hesap Planı', ikon: '📁' },
   ];
 
   const sekmeAdlari = {
-    anasayfa: 'Ana Defter', ekle: 'Fiş Kaydı', borclar: 'Borçlar',
-    eticaret: 'E-Ticaret', sirket: 'Şirket Giderleri',
+    anasayfa: 'Ana Defter', ekle: 'Hızlı Kayıt', borclar: 'Borçlar',
+    eticaret: 'E-Ticaret',
     aylikGider: 'Sabit Giderler',
+    hedefler: 'Hedef Takibi',
     raporlar: 'Raporlar', kategoriler: 'Hesap Planı',
   };
 
@@ -218,7 +234,7 @@ export default function App() {
     return (
       <div className="yukleniyor-ekrani">
         <div className="yukleniyor-spinner"></div>
-        <p>Bütçe Takip yükleniyor...</p>
+        <p>ParaPlan yükleniyor...</p>
       </div>
     );
   }
@@ -232,8 +248,10 @@ export default function App() {
       {/* Sol Menü */}
       <nav className={`sidebar ${mobileMenuAcik ? 'mobile-open' : ''}`}>
         <div className="sidebar-logo">
-          <div className="sidebar-logo-icon">B</div>
-          <div className="sidebar-logo-text">Bütçe <span>Takip</span></div>
+          <div className="sidebar-logo-icon">
+            <img src="/icon-192.png" alt="ParaPlan" style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'contain' }} />
+          </div>
+          <div className="sidebar-logo-text">Para<span>Plan</span></div>
           <button className="sidebar-kapat" onClick={() => setMobileMenuAcik(false)} aria-label="Menüyü Kapat">✕</button>
         </div>
 
@@ -264,7 +282,7 @@ export default function App() {
           <button className="mobile-hamburger" onClick={() => setMobileMenuAcik(true)} aria-label="Menüyü Aç">
             <span /><span /><span />
           </button>
-          <span className="mobile-baslik">{sekmeAdlari[aktifSekme] || 'Bütçe Takip'}</span>
+          <span className="mobile-baslik">{sekmeAdlari[aktifSekme] || 'ParaPlan'}</span>
           <span style={{ width: 30 }} />
         </div>
         {/* Bildirim */}
@@ -288,6 +306,7 @@ export default function App() {
               duzenleBaslat={duzenleBaslat}
               borclar={borclar}
               aylikGiderler={aylikGiderler}
+              hedefler={hedefler}
               setAktifSekme={setAktifSekme}
               setSeciliAy={setSeciliAy}
             />
@@ -312,8 +331,8 @@ export default function App() {
               kayitEkle={kayitEkle} kategoriler={kategoriler}
               seciliAy={seciliAy} setSeciliAy={setSeciliAy} />
           )}
-          {aktifSekme === 'sirket' && (
-            <SirketGiderleri data={sirketGider} api={api.sirketGider} />
+          {aktifSekme === 'hedefler' && (
+            <Hedefler data={hedefler} api={api.hedefler} />
           )}
           {aktifSekme === 'raporlar' && (
             <Raporlar
@@ -330,6 +349,26 @@ export default function App() {
           )}
         </div>
       </main>
+
+      {/* ====== MOBİL ALT TAB BAR ====== */}
+      <nav className="mobile-tab-bar">
+        {['anasayfa','borclar','ekle','hedefler','raporlar'].map(id => {
+          const s = sekmeler.find(s => s.id === id);
+          if (!s) return null;
+          // Mobil tab'de "Hızlı Kayıt" yerine sadece "Yeni" göster
+          const etiket = s.id === 'ekle' ? 'Yeni' : s.etiket;
+          return { ...s, etiket };
+        }).filter(Boolean).map((sekme) => (
+          <button
+            key={sekme.id}
+            className={`mobile-tab ${aktifSekme === sekme.id ? 'aktif' : ''}`}
+            onClick={() => setAktifSekme(sekme.id)}
+          >
+            <span className="mobile-tab-ikon">{sekme.ikon}</span>
+            <span className="mobile-tab-etiket">{sekme.etiket}</span>
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }

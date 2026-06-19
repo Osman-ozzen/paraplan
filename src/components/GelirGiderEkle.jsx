@@ -40,15 +40,20 @@ export default function GelirGiderEkle({ kategoriler, kayitEkle, kayitGuncelle, 
     setEkleniyor(true);
 
     let basarili = false;
-    if (duzenlemeModu) {
-      basarili = await kayitGuncelle({
-        id: duzenlenecekKayit.id,
-        tur, kategoriId, tutar: parseFloat(tutar), tarih, aciklama: aciklama.trim(),
-      });
-    } else {
-      basarili = await kayitEkle({
-        tur, kategoriId, tutar: parseFloat(tutar), tarih, aciklama: aciklama.trim(),
-      });
+    try {
+      if (duzenlemeModu) {
+        basarili = await kayitGuncelle({
+          id: duzenlenecekKayit.id,
+          tur, kategoriId, tutar: parseFloat(tutar), tarih, aciklama: aciklama.trim(),
+        });
+      } else {
+        basarili = await kayitEkle({
+          tur, kategoriId, tutar: parseFloat(tutar), tarih, aciklama: aciklama.trim(),
+        });
+      }
+    } catch (err) {
+      console.error('Fiş kaydetme hatası:', err);
+      basarili = false;
     }
 
     setEkleniyor(false);

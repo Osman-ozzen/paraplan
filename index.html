@@ -2,11 +2,235 @@
 <html lang="tr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="ParaPlan" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="ParaPlan" />
+    <meta name="msapplication-TileColor" content="#0f172a" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+    <link rel="shortcut icon" href="/favicon.png" type="image/png" />
+    <link rel="icon" href="/favicon.png" sizes="48x48" type="image/png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="touch-action" content="manipulation" />
     <!-- Geliştirme modunda CSP yorum satırında; Electron üretim build'inde main.js'de ayarlanır -->
-    <title>Bütçe Takip</title>
+    <title>ParaPlan</title>
+    <style>
+      /* ─── Temel ─── */
+      body { margin: 0; overflow: hidden; background: #0f172a; }
+      #pwa-splash {
+        position: fixed; inset: 0; z-index: 999999;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        background: #0f172a; color: #e2e8f0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        transition: opacity 0.6s ease, transform 0.6s ease;
+      }
+      #pwa-splash.yuklendi {
+        opacity: 0;
+        transform: scale(1.08) translateY(-10px);
+        pointer-events: none;
+      }
+
+      /* ─── Animasyonlu arkaplan geometrik şekiller ─── */
+      .splash-bg {
+        position: absolute; inset: 0; overflow: hidden;
+        pointer-events: none;
+      }
+      .splash-bg span {
+        position: absolute;
+        border-radius: 50%;
+        animation: float 10s ease-in-out infinite;
+        opacity: 0;
+      }
+      .splash-bg span:nth-child(1) {
+        width: 300px; height: 300px;
+        background: radial-gradient(circle, rgba(79,70,229,0.12) 0%, transparent 70%);
+        top: -5%; left: -8%;
+        animation-delay: 0s;
+        animation-duration: 14s;
+      }
+      .splash-bg span:nth-child(2) {
+        width: 200px; height: 200px;
+        background: radial-gradient(circle, rgba(124,58,237,0.1) 0%, transparent 70%);
+        bottom: -3%; right: -5%;
+        animation-delay: 2s;
+        animation-duration: 12s;
+      }
+      .splash-bg span:nth-child(3) {
+        width: 150px; height: 150px;
+        background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%);
+        top: 30%; right: 10%;
+        animation-delay: 4s;
+        animation-duration: 16s;
+      }
+      .splash-bg span:nth-child(4) {
+        width: 180px; height: 180px;
+        background: radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%);
+        bottom: 20%; left: 5%;
+        animation-delay: 1s;
+        animation-duration: 13s;
+      }
+      @keyframes float {
+        0%, 100% { opacity: 0; transform: scale(0.8) translateY(0); }
+        25% { opacity: 1; }
+        50% { opacity: 1; transform: scale(1.1) translateY(-20px); }
+        75% { opacity: 0.5; }
+        100% { opacity: 0; transform: scale(0.8) translateY(0); }
+      }
+
+      /* ─── Logo - zarif giriş ─── */
+      .splash-logo {
+        position: relative;
+        z-index: 2;
+        margin-bottom: 28px;
+        opacity: 0;
+        animation: logoReveal 0.9s 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      .splash-logo .logo-ring {
+        position: absolute;
+        top: 50%; left: 50%;
+        width: 120px; height: 120px;
+        transform: translate(-50%, -50%);
+        border: 1.5px solid rgba(79,70,229,0.15);
+        border-radius: 50%;
+        animation: ringExpand 1.2s 0.5s ease-out forwards;
+        opacity: 0;
+      }
+      .splash-logo .logo-ring:nth-child(2) {
+        width: 160px; height: 160px;
+        animation-delay: 0.7s;
+        border-color: rgba(124,58,237,0.1);
+      }
+      .splash-logo img {
+        width: 82px; height: 82px;
+        border-radius: 20px;
+        object-fit: contain;
+        display: block;
+        position: relative;
+        z-index: 1;
+        box-shadow: 0 0 50px rgba(79,70,229,0.3);
+        animation: logoGlow 3s ease-in-out 1s infinite;
+      }
+
+      @keyframes logoReveal {
+        0% { opacity: 0; transform: scale(0.7) rotate(-8deg); }
+        60% { transform: scale(1.05) rotate(1deg); }
+        100% { opacity: 1; transform: scale(1) rotate(0deg); }
+      }
+      @keyframes ringExpand {
+        0% { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+        100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      }
+      @keyframes logoGlow {
+        0%, 100% { box-shadow: 0 0 40px rgba(79,70,229,0.25); }
+        50% { box-shadow: 0 0 70px rgba(79,70,229,0.45), 0 0 100px rgba(79,70,229,0.15); }
+      }
+
+      /* ─── Brand yazısı - karakter karakter ─── */
+      .splash-brand {
+        position: relative;
+        z-index: 2;
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        background: linear-gradient(135deg, #c4b5fd, #818cf8, #4f46e5);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 32px;
+        opacity: 0;
+        animation: brandSlide 0.7s 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      @keyframes brandSlide {
+        0% { opacity: 0; transform: translateY(15px) scale(0.95); letter-spacing: 8px; }
+        100% { opacity: 1; transform: translateY(0) scale(1); letter-spacing: -0.5px; }
+      }
+
+      /* ─── Loading bar (modern) ─── */
+      .splash-bar-wrap {
+        position: relative;
+        z-index: 2;
+        width: 160px;
+        height: 3px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 4px;
+        overflow: hidden;
+        opacity: 0;
+        animation: fadeIn 0.4s 0.9s forwards;
+      }
+      .splash-bar-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #4f46e5, #7c3aed, #a78bfa);
+        border-radius: 4px;
+        animation: loadBar 2s 0.9s ease-in-out forwards;
+      }
+      @keyframes loadBar {
+        0% { width: 0%; }
+        30% { width: 35%; }
+        60% { width: 65%; }
+        85% { width: 85%; }
+        100% { width: 95%; }
+      }
+
+      /* ─── Durum yazısı ─── */
+      .splash-status {
+        position: relative;
+        z-index: 2;
+        font-size: 10px;
+        color: rgba(255,255,255,0.25);
+        margin-top: 10px;
+        font-weight: 500;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        opacity: 0;
+        animation: fadeIn 0.4s 1.2s forwards;
+      }
+      .splash-status span {
+        display: inline-block;
+        animation: dotPulse 1.4s ease-in-out infinite;
+      }
+      .splash-status span:nth-child(2) { animation-delay: 0.2s; }
+      .splash-status span:nth-child(3) { animation-delay: 0.4s; }
+
+      @keyframes dotPulse {
+        0%, 60%, 100% { opacity: 0.3; }
+        30% { opacity: 1; }
+      }
+      @keyframes fadeIn { to { opacity: 1; } }
+    </style>
   </head>
   <body>
+    <div id="pwa-splash">
+      <!-- Animasyonlu arkaplan -->
+      <div class="splash-bg">
+        <span></span><span></span><span></span><span></span>
+      </div>
+
+      <!-- Logo -->
+      <div class="splash-logo">
+        <div class="logo-ring"></div>
+        <div class="logo-ring"></div>
+        <img src="/icon-192.png" alt="ParaPlan" />
+      </div>
+
+      <!-- Brand -->
+      <div class="splash-brand">ParaPlan</div>
+
+      <!-- Loading bar -->
+      <div class="splash-bar-wrap">
+        <div class="splash-bar-fill"></div>
+      </div>
+
+      <!-- Status -->
+      <div class="splash-status">
+        YÜKLENİYOR<span>.</span><span>.</span><span>.</span>
+      </div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

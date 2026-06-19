@@ -32,6 +32,7 @@ const getDefaultData = () => ({
   eticaret: [],
   sirketGider: [],
   vergiKdv: [],
+  hedefler: [],
 });
 
 // ─── Veri Yolu ────────────────────────────────────────────────────────────
@@ -82,8 +83,8 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
     },
-    title: 'Bütçe Takip',
-    icon: path.join(__dirname, '../src/assets/icon.png'),
+    title: 'ParaPlan',
+    icon: path.join(__dirname, '../public/icon-512.png'),
     show: false,
   });
 
@@ -191,7 +192,7 @@ const bolumHandler = (bolum) => {
   });
 };
 
-['borclar', 'eticaret', 'sirketGider', 'vergiKdv'].forEach(bolumHandler);
+['borclar', 'eticaret', 'sirketGider', 'vergiKdv', 'hedefler'].forEach(bolumHandler);
 
 app.whenReady().then(createWindow);
 

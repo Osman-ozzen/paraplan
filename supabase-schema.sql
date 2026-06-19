@@ -78,6 +78,19 @@ CREATE TABLE IF NOT EXISTS aylik_giderler (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Hedefler (Goal Tracking)
+CREATE TABLE IF NOT EXISTS hedefler (
+  id TEXT PRIMARY KEY,
+  ad TEXT NOT NULL,
+  icon TEXT DEFAULT '🎯',
+  hedefTutar NUMERIC(12,2) NOT NULL,
+  birikenTutar NUMERIC(12,2) DEFAULT 0,
+  tamamlanmaTarihi DATE,
+  durum TEXT DEFAULT 'devam' CHECK (durum IN ('devam', 'tamamlandi')),
+  aciklama TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- ═══ İndeksler ═══════════════════════════════════════════════════════════
 CREATE INDEX IF NOT EXISTS idx_kayitlar_tarih ON kayitlar(tarih);
 CREATE INDEX IF NOT EXISTS idx_kayitlar_tur ON kayitlar(tur);
@@ -86,3 +99,4 @@ CREATE INDEX IF NOT EXISTS idx_aylik_giderler_ay ON aylik_giderler(ay);
 CREATE INDEX IF NOT EXISTS idx_borclar_durum ON borclar(durum);
 CREATE INDEX IF NOT EXISTS idx_eticaret_tarih ON eticaret(tarih);
 CREATE INDEX IF NOT EXISTS idx_sirket_gider_tarih ON sirket_gider(tarih);
+CREATE INDEX IF NOT EXISTS idx_hedefler_durum ON hedefler(durum);

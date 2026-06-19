@@ -80,6 +80,7 @@ const api = {
   eticaret: crud('eticaret'),
   sirketGider: crud('sirketGider'),
   aylikGiderler: crud('aylikGiderler'),
+  hedefler: crud('hedefler'),
 };
 
 export default api;

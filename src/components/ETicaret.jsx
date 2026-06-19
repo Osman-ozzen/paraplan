@@ -58,6 +58,7 @@ const varsayilan = {
 
 export default function ETicaret({ data, api }) {
   const [liste, setListe] = useState(data || []);
+  useEffect(() => { setListe(data || []); }, [data]);
   const [form, setForm] = useState(varsayilan);
   const [ekleniyor, setEkleniyor] = useState(false);
   const [duzenlenen, setDuzenlenen] = useState(null);
@@ -158,18 +159,23 @@ export default function ETicaret({ data, api }) {
       karMarji: hesapla.karMarji,
     };
 
-    const sonuc = await (duzenlenen
-      ? api.guncelle({ ...payload, id: duzenlenen.id })
-      : api.ekle(payload)
-    );
+    try {
+      const sonuc = await (duzenlenen
+        ? api.guncelle({ ...payload, id: duzenlenen.id })
+        : api.ekle(payload)
+      );
 
-    if (sonuc.basarili) {
-      const key = Object.keys(sonuc).find(k => k !== 'basarili');
-      setListe(sonuc[key]);
-      setForm(varsayilan);
-      setDuzenlenen(null);
+      if (sonuc.basarili) {
+        const key = Object.keys(sonuc).find(k => k !== 'basarili');
+        setListe(sonuc[key]);
+        setForm(varsayilan);
+        setDuzenlenen(null);
+      }
+    } catch (err) {
+      console.error('E-ticaret kaydetme hatası:', err);
+    } finally {
+      setEkleniyor(false);
     }
-    setEkleniyor(false);
   };
 
   // ─── Düzenle / Sil ──────────────────────────────────────────────────────
@@ -194,10 +200,14 @@ export default function ETicaret({ data, api }) {
   };
 
   const sil = async (id) => {
-    const s = await api.sil(id);
-    if (s.basarili) {
-      const k = Object.keys(s).find(kk => kk !== 'basarili');
-      setListe(s[k]);
+    try {
+      const s = await api.sil(id);
+      if (s.basarili) {
+        const k = Object.keys(s).find(kk => kk !== 'basarili');
+        setListe(s[k]);
+      }
+    } catch (err) {
+      console.error('E-ticaret silme hatası:', err);
     }
   };
 

@@ -23,4 +23,5 @@ contextBridge.exposeInMainWorld('butceAPI', {
   eticaret: crud('eticaret'),
   sirketGider: crud('sirketGider'),
   vergiKdv: crud('vergiKdv'),
+  hedefler: crud('hedefler'),
 });

@@ -41,7 +41,37 @@ const TABLOLAR = {
   eticaret: 'eticaret',
   sirketGider: 'sirket_gider',
   aylikGiderler: 'aylik_giderler',
+  hedefler: 'hedefler',
 };
+
+// Kolon adı dönüşümü: camelCase → snake_case
+const KOLON_MAP = {
+  kategoriler: {},
+  kayitlar: { kategoriId: 'kategori_id' },
+  borclar: { vadeTarihi: 'vade_tarihi' },
+  aylikGiderler: { odemeGunu: 'odeme_gunu' },
+  hedefler: {
+    hedefTutar: 'hedeftutar',
+    birikenTutar: 'birikentutar',
+    tamamlanmaTarihi: 'tamamlanmatarihi',
+  },
+};
+
+function mapKeys(bolum, obj) {
+  const map = KOLON_MAP[bolum];
+  let mapped = obj;
+  if (map) {
+    mapped = {};
+    for (const [key, val] of Object.entries(obj)) {
+      mapped[map[key] || key] = val;
+    }
+  }
+  // Boş string'leri null yap (DATE kolonları için)
+  for (const [key, val] of Object.entries(mapped)) {
+    if (val === '') mapped[key] = null;
+  }
+  return mapped;
+}
 
 async function aktar() {
   console.log('💰 Bütçe Takip - Veri Aktarımı');
@@ -62,7 +92,7 @@ async function aktar() {
     let hata = 0;
 
     for (let i = 0; i < items.length; i += chunkSize) {
-      const chunk = items.slice(i, i + chunkSize);
+      const chunk = items.slice(i, i + chunkSize).map(item => mapKeys(bolum, item));
       const { error } = await supabase.from(tablo).upsert(chunk, { onConflict: 'id' });
 
       if (error) {

@@ -19,15 +19,24 @@ export default function Kategoriler({ kategoriler, kategoriEkle, kategoriSil }) 
     if (varMi) { setHata('Bu isimde bir kategori zaten mevcut.'); return; }
 
     setEkleniyor(true);
-    const basarili = await kategoriEkle({ ad: ad.trim(), tur });
+    try {
+      const basarili = await kategoriEkle({ ad: ad.trim(), tur });
+      if (basarili) setAd('');
+      else setHata('Kategori eklenirken hata oluştu.');
+    } catch (err) {
+      console.error('Kategori ekleme hatası:', err);
+      setHata('Kategori eklenirken hata oluştu.');
+    }
     setEkleniyor(false);
-    if (basarili) setAd('');
-    else setHata('Kategori eklenirken hata oluştu.');
   };
 
   const handleSil = async (kategoriId) => {
     if (silmeOnay === kategoriId) {
-      await kategoriSil(kategoriId);
+      try {
+        await kategoriSil(kategoriId);
+      } catch (err) {
+        console.error('Kategori silme hatası:', err);
+      }
       setSilmeOnay(null);
     } else {
       setSilmeOnay(kategoriId);

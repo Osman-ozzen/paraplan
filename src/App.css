@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Bütçe Takip - meos.blog Teması
+   ParaPlan - Kişisel Finans Yönetimi
    Tasarım: Koyu lacivert + mor gradient, temiz kartlar, modern tipografi
    ═══════════════════════════════════════════════════════════════════════════ */
 
@@ -193,7 +193,8 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--text);
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 0;
+  padding-bottom: 50px;
 }
 
 .panel {
@@ -203,7 +204,7 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--text);
   border: 1px solid var(--border);
   transition: var(--transition);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   box-shadow: var(--shadow);
 }
 
@@ -272,38 +273,36 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--text);
 
 .bu-ay-tooltip {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 10px);
   left: 50%;
   transform: translateX(-50%) scale(0.9);
   transform-origin: top center;
-  background: rgba(15, 15, 26, 0.96);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 12px 16px;
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
-  z-index: 200;
+  background: #0f0f1a;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  padding: 16px 20px;
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.7);
+  z-index: 99999;
   opacity: 0;
   visibility: hidden;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
   white-space: nowrap;
-  min-width: 180px;
+  min-width: 220px;
 }
 
 /* Üst ok (yukarıyı gösteren üçgen - tooltip panelin ALTINDA) */
 .bu-ay-tooltip::after {
   content: '';
   position: absolute;
-  top: -6px;
+  top: -7px;
   left: 50%;
   transform: translateX(-50%) rotate(45deg);
-  width: 10px;
-  height: 10px;
-  background: rgba(15, 15, 26, 0.96);
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  width: 12px;
+  height: 12px;
+  background: #0f0f1a;
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .bu-ay-panel:hover .bu-ay-tooltip {
@@ -316,18 +315,18 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--text);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 20px;
-  padding: 3px 0;
-  font-size: 12px;
-  color: #e2e8f0;
-  font-weight: 600;
+  gap: 24px;
+  padding: 4px 0;
+  font-size: 13px;
+  color: #ffffff;
+  font-weight: 700;
 }
 
 .bu-ay-tooltip-deger {
-  font-weight: 700;
+  font-weight: 800;
   font-family: var(--font-mono);
-  color: #f1f5f9;
-  font-size: 12px;
+  color: #ffffff;
+  font-size: 14px;
 }
 
 .bu-ay-tooltip-deger.gelir {
@@ -424,11 +423,14 @@ td.tutar, th.tutar { text-align: right; }
    ═══════════════════════════════════════════════════════════════════════════ */
 .grafik-alani {
   background: white;
-  border-radius: var(--radius);
+  border-radius: 16px !important;
   border: 1px solid var(--border);
   padding: 20px;
   margin-bottom: 24px;
   box-shadow: var(--shadow);
+  overflow: hidden !important;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  mask-image: radial-gradient(white, black);
 }
 .grafik-alani:hover { box-shadow: var(--shadow-md); }
 
@@ -748,6 +750,751 @@ td.tutar, th.tutar { text-align: right; }
   .icerik-alani { padding: 20px 24px; }
   .panel-grid { grid-template-columns: repeat(3, 1fr); }
   .form-row { flex-wrap: wrap; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HEDEF TAKİBİ - Goal Cards & Progress
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Hızlı Hedef Öneri Butonları ──────────────────────────────────────────── */
+.oneri-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.oneri-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 10px;
+  background: var(--bg-alt);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: inherit;
+  transition: var(--transition);
+}
+
+.oneri-btn:hover {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.oneri-btn.aktif {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
+}
+
+.oneri-icon { font-size: 24px; }
+.oneri-ad { font-size: 11px; font-weight: 700; color: var(--text); }
+.oneri-tutar { font-size: 10px; font-weight: 600; color: var(--text-light); }
+
+/* ─── Hedef Kart Listesi ───────────────────────────────────────────────────── */
+.hedef-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+}
+
+.hedef-kart {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  transition: var(--transition);
+}
+
+.hedef-kart:hover {
+  box-shadow: var(--shadow-md);
+  border-color: transparent;
+}
+
+.hedef-kart.hedef-tamamlandi {
+  opacity: 0.75;
+  background: var(--border-light);
+}
+
+.hedef-kart-ust {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.hedef-kart-baslik {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hedef-icon {
+  font-size: 28px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-alt);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.hedef-ad {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.hedef-tarih {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-light);
+  margin-top: 2px;
+}
+
+.hedef-kart-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.hedef-tamamla-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: var(--success-light);
+  color: var(--success);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hedef-tamamla-btn:hover {
+  background: var(--success);
+  color: white;
+  transform: scale(1.1);
+}
+
+/* ─── Progress Bar ─────────────────────────────────────────────────────────── */
+.hedef-progress-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.hedef-progress-bar {
+  flex: 1;
+  height: 10px;
+  background: var(--bg-alt);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.hedef-progress-dolu {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 0;
+}
+
+.hedef-progress-yuzde {
+  font-size: 11px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  width: 48px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ─── Hedef Tooltip (Ana Sayfa Paneli) ──────────────────────────────────────── */
+.hedef-panel {
+  position: relative;
+  cursor: pointer;
+  overflow: visible !important;
+}
+
+.hedef-panel:hover .panel-sub {
+  color: var(--primary);
+}
+
+.hedef-tooltip {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.9);
+  transform-origin: top center;
+  background: #0f0f1a;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.7);
+  z-index: 99999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  white-space: nowrap;
+  min-width: 280px;
+}
+
+.hedef-tooltip::after {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 12px;
+  height: 12px;
+  background: #0f0f1a;
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.hedef-panel:hover .hedef-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) scale(1);
+}
+
+.hedef-tooltip-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: #c4b5fd;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.hedef-tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.hedef-tooltip-icon {
+  font-size: 16px;
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.hedef-tooltip-ad {
+  color: #ffffff;
+  font-weight: 700;
+  width: 70px;
+  text-align: left;
+  flex-shrink: 0;
+}
+
+.hedef-tooltip-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+  overflow: hidden;
+  min-width: 50px;
+}
+
+.hedef-tooltip-dolu {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.hedef-tooltip-yuzde {
+  width: 38px;
+  text-align: right;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: #e2e8f0;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.hedef-tooltip-ayrac {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  margin: 8px 0;
+}
+
+.hedef-tooltip-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+.hedef-tooltip-footer span:last-child {
+  color: #c4b5fd;
+  font-weight: 800;
+}
+
+/* ─── Hedef Alt Bilgi ──────────────────────────────────────────────────────── */
+.hedef-kart-alt {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hedef-kart-tutar {
+  font-size: 13px;
+}
+
+.hedef-biriken {
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: #059669;
+}
+
+.hedef-ayrac {
+  color: var(--text-light);
+  font-weight: 400;
+}
+
+.hedef-tutar {
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--text-light);
+}
+
+.hedef-kalan {
+  font-size: 10px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.hedef-kalan strong {
+  font-family: var(--font-mono);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.hedef-aciklama {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-light);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* ─── Birikim Ekle / Çıkar ──────────────────────────────────────────────────── */
+.hedef-birikim-actions {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hedef-birikim-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hedef-birikim-input-grup {
+  flex: 1;
+  min-width: 0;
+}
+
+.hedef-birikim-input {
+  width: 100%;
+  padding: 6px 10px !important;
+  font-size: 12px !important;
+  text-align: center;
+  min-width: 80px;
+}
+
+.hedef-birikim-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.hedef-birikim-ekle-btn {
+  background: var(--success-light);
+  color: #059669;
+}
+.hedef-birikim-ekle-btn:hover {
+  background: var(--success);
+  color: white;
+}
+
+.hedef-birikim-cikar-btn {
+  background: var(--danger-light);
+  color: #dc2626;
+}
+.hedef-birikim-cikar-btn:hover {
+  background: var(--danger);
+  color: white;
+}
+
+.hedef-birikim-quick {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.hedef-birikim-hizli-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.hedef-birikim-hizli {
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  background: white;
+  border-radius: 5px;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  transition: var(--transition);
+}
+.hedef-birikim-hizli:hover {
+  border-color: var(--success);
+  color: var(--success);
+  background: var(--success-light);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .oneri-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .oneri-btn {
+    padding: 10px 6px;
+  }
+  .oneri-icon { font-size: 20px; }
+  .oneri-ad { font-size: 9px; }
+  .oneri-tutar { font-size: 8px; }
+
+  .hedef-icon { font-size: 22px; width: 34px; height: 34px; }
+  .hedef-ad { font-size: 12px; }
+  .hedef-liste { padding: 10px 12px; }
+  .hedef-kart { padding: 10px 12px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBİL TAB BAR - Alt navigasyon
+   ═══════════════════════════════════════════════════════════════════════════ */
+.mobile-tab-bar {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  z-index: 1000;
+  padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.mobile-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  transition: var(--transition);
+  position: relative;
+  min-width: 48px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.mobile-tab-ikon {
+  font-size: 20px;
+  line-height: 1;
+  transition: transform 0.2s;
+}
+
+.mobile-tab.aktif .mobile-tab-ikon {
+  transform: scale(1.15);
+}
+
+.mobile-tab-etiket {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-light);
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+
+.mobile-tab.aktif .mobile-tab-etiket {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.mobile-tab.aktif::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  background: var(--primary-gradient);
+  border-radius: 0 0 3px 3px;
+}
+
+/* Ortadaki Fiş Kaydı butonu belirgin (aksiyon butonu) */
+.mobile-tab-bar .mobile-tab:nth-child(3) .mobile-tab-ikon {
+  font-size: 26px;
+  background: var(--primary-gradient);
+  color: white;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.4);
+  margin-bottom: 2px;
+}
+.mobile-tab-bar .mobile-tab:nth-child(3) {
+  margin-top: -12px;
+}
+.mobile-tab-bar .mobile-tab:nth-child(3) .mobile-tab-etiket {
+  color: var(--primary);
+  font-weight: 700;
+}
+.mobile-tab.aktif:nth-child(3)::before {
+  display: none;
+}
+
+/* Mobil: 768px ve altı */
+@media (max-width: 768px) {
+  .mobile-tab-bar { display: flex; }
+
+  .sidebar { display: none; }
+  .sidebar.mobile-open { display: flex; }
+
+  .mobile-header {
+    display: flex !important;
+  }
+
+  .ana-icerik {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .icerik-alani {
+    padding: 16px 14px !important;
+  }
+
+  .panel-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    padding-bottom: 30px !important;
+  }
+
+  .panel {
+    padding: 14px 14px !important;
+  }
+
+  .panel-value {
+    font-size: 16px !important;
+  }
+
+  .sayfa-baslik h2 {
+    font-size: 18px !important;
+  }
+
+  .ekleme-alani {
+    grid-template-columns: 1fr !important;
+  }
+
+  .form-row {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .form-row .form-grup {
+    flex: 1 1 100% !important;
+  }
+
+  .grafik-alani {
+    padding: 14px !important;
+    overflow: hidden !important;
+    border-radius: 16px !important;
+  }
+
+  .tablo-kapsayici {
+    overflow-x: auto;
+  }
+
+  .tablo-kapsayici table {
+    font-size: 11px;
+  }
+
+  .tablo-kapsayici th,
+  .tablo-kapsayici td {
+    padding: 6px 8px !important;
+  }
+
+  .hedef-liste {
+    padding: 8px 10px !important;
+  }
+
+  .hedef-kart {
+    padding: 10px 12px !important;
+  }
+
+  .oneri-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 4px !important;
+  }
+
+  .oneri-btn {
+    padding: 8px 4px !important;
+  }
+  .oneri-icon { font-size: 18px !important; }
+  .oneri-ad { font-size: 8px !important; }
+  .oneri-tutar { font-size: 8px !important; }
+
+  .bu-ay-tooltip,
+  .hedef-tooltip {
+    min-width: 180px !important;
+    padding: 12px 14px !important;
+  }
+
+  .hedef-birikim-input {
+    width: 80px !important;
+  }
+
+  .hedef-birikim-hizli {
+    font-size: 8px !important;
+    padding: 2px 6px !important;
+  }
+
+  /* ─── Mobil Grafik Düzeltmeleri ────────────────────────────────────── */
+  .grafik-alani .recharts-wrapper {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 180px;
+  }
+
+  .grafik-alani .recharts-surface {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .grafik-alani .recharts-legend-item-text {
+    font-size: 9px !important;
+  }
+
+  .grafik-alani .recharts-text {
+    font-size: 9px !important;
+  }
+
+  .grafik-alani .recharts-cartesian-axis-tick-value {
+    font-size: 9px !important;
+  }
+
+  .grafik-alani .recharts-default-tooltip {
+    font-size: 10px !important;
+  }
+
+  /* Pie chart mobilde küçülsün */
+  .grafik-alani div[style*="width: 240px"] {
+    width: 140px !important;
+    height: 140px !important;
+  }
+  .grafik-alani div[style*="width: 180px"] {
+    width: 120px !important;
+    height: 120px !important;
+  }
+
+  /* Yatay bar chart etiketi kısalt */
+  .grafik-alani .recharts-yAxis .recharts-text {
+    font-size: 8px !important;
+  }
+
+  /* Flex wrap ile grafik yanındaki liste alta geçsin */
+  .grafik-alani div[style*="flex-wrap: wrap"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .grafik-alani div[style*="flex-wrap: wrap"] > div:first-child {
+    align-self: center;
+  }
+
+  /* Hedef bar chart yüksekliğini sınırla */
+  .grafik-alani .recharts-responsive-container {
+    max-height: 200px !important;
+  }
+
+  /* Tooltip tooltip'leri mobilde daha küçük */
+  .recharts-tooltip-wrapper {
+    font-size: 10px !important;
+  }
+}
+
+/* Çok küçük ekranlar (360px altı) */
+@media (max-width: 400px) {
+  .panel-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+  .panel {
+    padding: 10px 10px !important;
+  }
+  .panel-value {
+    font-size: 14px !important;
+  }
+  .panel-label {
+    font-size: 9px !important;
+  }
+  .panel-sub {
+    font-size: 8px !important;
+  }
+  .mobile-tab-ikon {
+    font-size: 18px;
+  }
+  .mobile-tab-etiket {
+    font-size: 8px;
+  }
 }
 
 /* Scrollbar */

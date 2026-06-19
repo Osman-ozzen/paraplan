@@ -113,12 +113,16 @@ export default function AylikGiderler({ data, api, kayitEkle, kategoriler, secil
     const odemeGunu = parseInt(form.odemeGunu) || 1;
 
     if (duzenlenen) {
-      const sonuc = await api.guncelle({ ...form, tutar, odemeGunu, id: duzenlenen.id });
-      if (sonuc.basarili) {
-        const key = Object.keys(sonuc).find(k => k !== 'basarili');
-        setListe(sonuc[key]);
-        setForm(varsayilan);
-        setDuzenlenen(null);
+      try {
+        const sonuc = await api.guncelle({ ...form, tutar, odemeGunu, id: duzenlenen.id });
+        if (sonuc.basarili) {
+          const key = Object.keys(sonuc).find(k => k !== 'basarili');
+          setListe(sonuc[key]);
+          setForm(varsayilan);
+          setDuzenlenen(null);
+        }
+      } catch (err) {
+        console.error('Sabit gider güncelleme hatası:', err);
       }
       setEkleniyor(false);
       return;
@@ -146,11 +150,15 @@ export default function AylikGiderler({ data, api, kayitEkle, kategoriler, secil
         aciklama: i > 0 ? `${form.aciklama} (${periyot} ay periyot)`.trim() : form.aciklama,
       };
 
-      const sonuc = await api.ekle(payload);
-      if (sonuc.basarili) {
-        basariliCount++;
-        const key = Object.keys(sonuc).find(k => k !== 'basarili');
-        sonListe = sonuc[key];
+      try {
+        const sonuc = await api.ekle(payload);
+        if (sonuc.basarili) {
+          basariliCount++;
+          const key = Object.keys(sonuc).find(k => k !== 'basarili');
+          sonListe = sonuc[key];
+        }
+      } catch (err) {
+        console.error('Sabit gider ekleme hatası:', err);
       }
 
       // Ana deftere de işle (kayitEkle)
@@ -190,18 +198,26 @@ export default function AylikGiderler({ data, api, kayitEkle, kategoriler, secil
   };
 
   const sil = async (id) => {
-    const s = await api.sil(id);
-    if (s.basarili) {
-      const k = Object.keys(s).find(kk => kk !== 'basarili');
-      setListe(s[k]);
+    try {
+      const s = await api.sil(id);
+      if (s.basarili) {
+        const k = Object.keys(s).find(kk => kk !== 'basarili');
+        setListe(s[k]);
+      }
+    } catch (err) {
+      console.error('Sabit gider silme hatası:', err);
     }
   };
 
   const odendiToggle = async (item) => {
-    const sonuc = await api.guncelle({ ...item, odendi: !item.odendi });
-    if (sonuc.basarili) {
-      const k = Object.keys(sonuc).find(kk => kk !== 'basarili');
-      setListe(sonuc[k]);
+    try {
+      const sonuc = await api.guncelle({ ...item, odendi: !item.odendi });
+      if (sonuc.basarili) {
+        const k = Object.keys(sonuc).find(kk => kk !== 'basarili');
+        setListe(sonuc[k]);
+      }
+    } catch (err) {
+      console.error('Ödeme durumu güncelleme hatası:', err);
     }
   };
 
@@ -232,10 +248,14 @@ export default function AylikGiderler({ data, api, kayitEkle, kategoriler, secil
     if (!confirm(`${secili.length} kaydı silmek istediğine emin misin?`)) return;
     let sonListe = [];
     for (const id of secili) {
-      const s = await api.sil(id);
-      if (s.basarili) {
-        const k = Object.keys(s).find(kk => kk !== 'basarili');
-        sonListe = s[k];
+      try {
+        const s = await api.sil(id);
+        if (s.basarili) {
+          const k = Object.keys(s).find(kk => kk !== 'basarili');
+          sonListe = s[k];
+        }
+      } catch (err) {
+        console.error('Toplu silme hatası:', err);
       }
     }
     setListe(sonListe);
