@@ -1,80 +1,66 @@
 // ─── API Katmanı ────────────────────────────────────────────────────────
-// Hem sunucu (server/index.js) hem de Electron IPC üzerinden çalışır.
-// Telefon için: http://<bilgisayar-ip>:3001 adresinden erişilir.
+// Auth token localStorage'dan okunur, tüm isteklere eklenir.
 
-// Render'da (production) aynı origin kullanılır, geliştirmede 3001
 const SUNUCU_URL = window.location.port === '5173'
   ? `http://${window.location.hostname}:3001`
   : '';
 
-// Sunucu çalışıyor mu kontrol et
-async function sunucuVarMi() {
-  try {
-    const r = await fetch(`${SUNUCU_URL}/api/veri`, { signal: AbortSignal.timeout(2000) });
-    return r.ok;
-  } catch { return false; }
+function getToken() {
+  try { return localStorage.getItem('paraplan_token'); } catch { return null; }
 }
 
-// Genel fetch
+function authHeaders() {
+  const token = getToken();
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return headers;
+}
+
 async function apiFetch(path, options = {}) {
   const url = path.startsWith('http') ? path : `${SUNUCU_URL}${path}`;
   const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     ...options,
+    headers: { ...authHeaders(), ...(options.headers || {}) },
   });
+  // 401 durumunda oturumu temizle
+  if (res.status === 401) {
+    localStorage.removeItem('paraplan_token');
+    localStorage.removeItem('paraplan_user');
+    window.location.reload();
+  }
   return res.json();
 }
 
-// CRUD operasyonları
 const crud = (bolum) => ({
   ekle: async (kayit) => apiFetch(`/api/${bolum}`, { method: 'POST', body: JSON.stringify(kayit) }),
   sil: async (id) => apiFetch(`/api/${bolum}/${id}`, { method: 'DELETE' }),
   guncelle: async (kayit) => apiFetch(`/api/${bolum}/${kayit.id}`, { method: 'PUT', body: JSON.stringify(kayit) }),
 });
 
-// ─── API Nesnesi ─────────────────────────────────────────────────────────
 const api = {
   veriOku: async () => {
-    if (await sunucuVarMi()) return apiFetch('/api/veri');
+    try {
+      const r = await fetch(`${SUNUCU_URL}/api/veri`, {
+        headers: authHeaders(), signal: AbortSignal.timeout(5000)
+      });
+      if (r.ok) return r.json();
+    } catch { /* fallback */ }
     if (window.butceAPI) return window.butceAPI.veriOku();
     return null;
   },
 
   veriYaz: async (data) => {
-    if (await sunucuVarMi()) return apiFetch('/api/veri', { method: 'POST', body: JSON.stringify(data) });
-    if (window.butceAPI) return window.butceAPI.veriYaz(data);
-    return { basarili: false };
+    const r = await apiFetch('/api/veri', { method: 'POST', body: JSON.stringify(data) });
+    return r;
   },
 
-  kayitEkle: async (kayit) => {
-    if (await sunucuVarMi()) return apiFetch('/api/kayitlar', { method: 'POST', body: JSON.stringify(kayit) });
-    if (window.butceAPI) return window.butceAPI.kayitEkle(kayit);
-    return { basarili: false };
-  },
+  kayitEkle: async (kayit) => apiFetch('/api/kayitlar', { method: 'POST', body: JSON.stringify(kayit) }),
+  kayitSil: async (id) => apiFetch(`/api/kayitlar/${id}`, { method: 'DELETE' }),
+  kayitGuncelle: async (kayit) => apiFetch(`/api/kayitlar/${kayit.id}`, { method: 'PUT', body: JSON.stringify(kayit) }),
 
-  kayitSil: async (id) => {
-    if (await sunucuVarMi()) return apiFetch(`/api/kayitlar/${id}`, { method: 'DELETE' });
-    if (window.butceAPI) return window.butceAPI.kayitSil(id);
-    return { basarili: false };
-  },
-
-  kayitGuncelle: async (kayit) => {
-    if (await sunucuVarMi()) return apiFetch(`/api/kayitlar/${kayit.id}`, { method: 'PUT', body: JSON.stringify(kayit) });
-    if (window.butceAPI) return window.butceAPI.kayitGuncelle(kayit);
-    return { basarili: false };
-  },
-
-  kategoriEkle: async (kategori) => {
-    if (await sunucuVarMi()) return apiFetch('/api/kategoriler', { method: 'POST', body: JSON.stringify(kategori) });
-    if (window.butceAPI) return window.butceAPI.kategoriEkle(kategori);
-    return { basarili: false };
-  },
-
-  kategoriSil: async (id) => {
-    if (await sunucuVarMi()) return apiFetch(`/api/kategori/${id}`, { method: 'DELETE' });
-    if (window.butceAPI) return window.butceAPI.kategoriSil(id);
-    return { basarili: false };
-  },
+  kategoriEkle: async (kategori) => apiFetch('/api/kategoriler', { method: 'POST', body: JSON.stringify(kategori) }),
+  kategoriSil: async (id) => apiFetch(`/api/kategori/${id}`, { method: 'DELETE' }),
 
   borclar: crud('borclar'),
   eticaret: crud('eticaret'),

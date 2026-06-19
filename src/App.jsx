@@ -7,6 +7,8 @@ import Borclar from './components/Borclar';
 import ETicaret from './components/ETicaret';
 import AylikGiderler from './components/AylikGiderler';
 import Hedefler from './components/Hedefler';
+import AuthPage from './components/AuthPage';
+import { useAuth } from './contexts/AuthContext';
 import api from './utils/api';
 import './App.css';
 
@@ -17,6 +19,7 @@ function idOlustur() {
 
 // ─── App Bileşeni ───────────────────────────────────────────────────────────
 export default function App() {
+  const { user, yukleniyor: authYukleniyor } = useAuth();
   const [aktifSekme, setAktifSekme] = useState('anasayfa');
   const [kategoriler, setKategoriler] = useState([]);
   const [kayitlar, setKayitlar] = useState([]);
@@ -229,6 +232,21 @@ export default function App() {
     raporlar: 'Raporlar', kategoriler: 'Hesap Planı',
   };
 
+  // ─── Auth yükleniyor ──────────────────────────────────────────────────────
+  if (authYukleniyor) {
+    return (
+      <div className="yukleniyor-ekrani">
+        <div className="yukleniyor-spinner"></div>
+        <p>ParaPlan yükleniyor...</p>
+      </div>
+    );
+  }
+
+  // ─── Giriş yapılmamışsa Auth sayfası ──────────────────────────────────────
+  if (!user) {
+    return <AuthPage />;
+  }
+
   // ─── Yükleniyor ───────────────────────────────────────────────────────────
   if (yukleniyor) {
     return (
@@ -272,6 +290,10 @@ export default function App() {
 
         <div className="sidebar-alt">
           <p>v1.0 • {saat}</p>
+          <button onClick={() => { localStorage.clear(); window.location.reload(); }}
+            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 10, cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
+            Çıkış
+          </button>
         </div>
       </nav>
 

@@ -49,15 +49,48 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const useSupabase = !!(SUPABASE_URL && SUPABASE_KEY);
 
+const SUPABASE_ANON = process.env.SUPABASE_ANON_KEY;
+const useAuth = !!(SUPABASE_URL && SUPABASE_ANON);
+
 let supabase = null;
+let supabaseAnon = null;
+
 if (useSupabase) {
   const { createClient } = require('@supabase/supabase-js');
   supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
     auth: { persistSession: false },
   });
-  console.log('  🗄️  Veritabanı: Supabase');
+  if (useAuth) {
+    supabaseAnon = createClient(SUPABASE_URL, SUPABASE_ANON, {
+      auth: { persistSession: false },
+    });
+  }
+  console.log('  🗄️  Veritabanı: Supabase' + (useAuth ? ' + Auth' : ''));
 } else {
   console.log('  🗄️  Veritabanı: JSON (yerel dosya)');
+}
+
+// ─── Auth Middleware ───────────────────────────────────────────────────────
+async function authMiddleware(req, res, next) {
+  if (!useAuth) return next(); // Auth yoksa devam et
+
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Oturum gerekli' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  try {
+    const { data: { user }, error } = await supabaseAnon.auth.getUser(token);
+    if (error || !user) {
+      return res.status(401).json({ error: 'Geçersiz oturum' });
+    }
+    req.userId = user.id;
+    req.userEmail = user.email;
+    next();
+  } catch {
+    return res.status(401).json({ error: 'Oturum doğrulanamadı' });
+  }
 }
 
 // ─── JSON Veri Yolu (fallback) ──────────────────────────────────────────
@@ -190,15 +223,16 @@ function jsonWriteData(data) {
   }
 }
 
-// ─── Supabase: Tüm Veriyi Oku (🐛 FIX: hedefler eklendi) ─────────────
-async function supabaseVeriOku() {
+// ─── Supabase: Tüm Veriyi Oku ─────────────────────────────────────────
+async function supabaseVeriOku(userId) {
   const result = {};
 
   for (const [key, table] of Object.entries(BOLUM_TABLO)) {
     try {
-      const { data, error } = await supabase.from(table).select('*');
+      let query = supabase.from(table).select('*');
+      if (userId) query = query.eq('user_id', userId);
+      const { data, error } = await query;
       if (!error && data) {
-        // Snake_case'den camelCase'e dönüştür
         result[key] = convertKeys(data, toCamelCase);
       } else {
         result[key] = [];
@@ -208,12 +242,13 @@ async function supabaseVeriOku() {
     }
   }
 
-  // Varsayılan kategorileri ekle (eğer boşsa)
-  if (!result.kategoriler || result.kategoriler.length === 0) {
+  // Varsayılan kategorileri ekle (kullanıcıya özel)
+  if ((!result.kategoriler || result.kategoriler.length === 0) && userId) {
     try {
+      const varsayilan = DEFAULT_KATEGORILER.map(k => ({ ...k, user_id: userId }));
       const { data: katData, error: katError } = await supabase
         .from('kategoriler')
-        .upsert(convertKeys(DEFAULT_KATEGORILER, toSnakeCase), { onConflict: 'id' })
+        .upsert(convertKeys(varsayilan, toSnakeCase), { onConflict: 'id' })
         .select();
       if (!katError && katData) result.kategoriler = convertKeys(katData, toCamelCase);
     } catch {}
@@ -224,9 +259,10 @@ async function supabaseVeriOku() {
 }
 
 // ─── Supabase: Bölüm Ekle ──────────────────────────────────────────────
-async function supabaseBolumEkle(bolum, kayit) {
+async function supabaseBolumEkle(bolum, kayit, userId) {
   const table = getTableName(bolum);
   const yeni = { ...convertKeys(kayit, toSnakeCase), id: kayit.id || idOlustur() };
+  if (userId) yeni.user_id = userId;
 
   const { data, error } = await supabase.from(table).insert(yeni).select();
   if (error) throw error;
@@ -234,33 +270,50 @@ async function supabaseBolumEkle(bolum, kayit) {
 }
 
 // ─── Supabase: Bölüm Güncelle ─────────────────────────────────────────
-async function supabaseBolumGuncelle(bolum, id, kayit) {
+async function supabaseBolumGuncelle(bolum, id, kayit, userId) {
   const table = getTableName(bolum);
   const guncel = convertKeys(kayit, toSnakeCase);
 
-  const { data, error } = await supabase.from(table).update(guncel).eq('id', id).select();
+  let query = supabase.from(table).update(guncel).eq('id', id);
+  if (userId) query = query.eq('user_id', userId);
+  const { data, error } = await query.select();
   if (error) throw error;
   return { basarili: data && data.length > 0, [bolum]: convertKeys(data || [], toCamelCase) };
 }
 
 // ─── Supabase: Bölüm Sil ─────────────────────────────────────────────
-async function supabaseBolumSil(bolum, id) {
+async function supabaseBolumSil(bolum, id, userId) {
   const table = getTableName(bolum);
 
-  const { error } = await supabase.from(table).delete().eq('id', id);
+  let query = supabase.from(table).delete().eq('id', id);
+  if (userId) query = query.eq('user_id', userId);
+  const { error } = await query;
   if (error) throw error;
 
-  const { data } = await supabase.from(table).select('*');
+  let selectQuery = supabase.from(table).select('*');
+  if (userId) selectQuery = selectQuery.eq('user_id', userId);
+  const { data } = await selectQuery;
   return { basarili: true, [bolum]: convertKeys(data || [], toCamelCase) };
 }
 
 // ─── Supabase: Kategori Sil ───────────────────────────────────────────
-async function supabaseKategoriSil(id) {
-  await supabase.from('kayitlar').delete().eq('kategori_id', id);
-  await supabase.from('kategoriler').delete().eq('id', id);
+async function supabaseKategoriSil(id, userId) {
+  let delQuery = supabase.from('kayitlar').delete().eq('kategori_id', id);
+  if (userId) delQuery = delQuery.eq('user_id', userId);
+  await delQuery;
 
-  const kategoriler = (await supabase.from('kategoriler').select('*')).data || [];
-  const kayitlar = (await supabase.from('kayitlar').select('*')).data || [];
+  let delKatQuery = supabase.from('kategoriler').delete().eq('id', id);
+  if (userId) delKatQuery = delKatQuery.eq('user_id', userId);
+  await delKatQuery;
+
+  let katQuery = supabase.from('kategoriler').select('*');
+  let kayQuery = supabase.from('kayitlar').select('*');
+  if (userId) {
+    katQuery = katQuery.eq('user_id', userId);
+    kayQuery = kayQuery.eq('user_id', userId);
+  }
+  const kategoriler = (await katQuery).data || [];
+  const kayitlar = (await kayQuery).data || [];
 
   return { basarili: true, kategoriler: convertKeys(kategoriler, toCamelCase), kayitlar: convertKeys(kayitlar, toCamelCase) };
 }
@@ -276,11 +329,62 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString(), uptime: process.uptime() });
 });
 
+// ─── Auth: Kayıt ──────────────────────────────────────────────────────────
+app.post('/api/auth/register', async (req, res) => {
+  if (!useAuth) return res.status(400).json({ error: 'Auth yapılandırılmamış' });
+  const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ error: 'Email ve şifre gerekli' });
+
+  try {
+    const { data, error } = await supabaseAnon.auth.signUp({ email, password });
+    if (error) return res.status(400).json({ error: error.message });
+    res.json({ user: data.user, session: data.session });
+  } catch (err) {
+    res.status(500).json({ error: 'Kayıt başarısız' });
+  }
+});
+
+// ─── Auth: Giriş ──────────────────────────────────────────────────────────
+app.post('/api/auth/login', async (req, res) => {
+  if (!useAuth) return res.status(400).json({ error: 'Auth yapılandırılmamış' });
+  const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ error: 'Email ve şifre gerekli' });
+
+  try {
+    const { data, error } = await supabaseAnon.auth.signInWithPassword({ email, password });
+    if (error) return res.status(401).json({ error: 'Email veya şifre hatalı' });
+    res.json({ user: data.user, session: data.session });
+  } catch (err) {
+    res.status(500).json({ error: 'Giriş başarısız' });
+  }
+});
+
+// ─── Auth: Kullanıcı Bilgisi ──────────────────────────────────────────────
+app.get('/api/auth/me', authMiddleware, async (req, res) => {
+  res.json({ userId: req.userId, email: req.userEmail });
+});
+
+// ─── Auth: Eski verileri kullanıcıya ata ────────────────────────────────
+app.post('/api/auth/ata', authMiddleware, async (req, res) => {
+  const { userId } = req;
+  try {
+    const tablolar = ['kategoriler', 'kayitlar', 'borclar', 'eticaret', 'sirket_gider', 'aylik_giderler', 'hedefler'];
+    let toplam = 0;
+    for (const table of tablolar) {
+      const { data, error } = await supabase.from(table).update({ user_id: userId }).eq('user_id', '');
+      if (!error && data) toplam += (data || []).length;
+    }
+    res.json({ basarili: true, adet: toplam });
+  } catch (err) {
+    res.status(500).json({ error: 'Veri atanamadı' });
+  }
+});
+
 // ─── API: Veri Okuma ─────────────────────────────────────────────────────
-app.get('/api/veri', async (req, res) => {
+app.get('/api/veri', authMiddleware, async (req, res) => {
   try {
     if (useSupabase) {
-      const data = await supabaseVeriOku();
+      const data = await supabaseVeriOku(req.userId);
       res.json(data);
     } else {
       res.json(jsonReadData());
@@ -302,7 +406,7 @@ app.post('/api/veri', (req, res) => {
 });
 
 // ─── API: Bölüm Ekle ─────────────────────────────────────────────────────
-app.post('/api/:bolum', async (req, res) => {
+app.post('/api/:bolum', authMiddleware, async (req, res) => {
   const { bolum } = req.params;
 
   // Validasyon
@@ -316,7 +420,7 @@ app.post('/api/:bolum', async (req, res) => {
 
   try {
     if (useSupabase) {
-      const sonuc = await supabaseBolumEkle(bolum, req.body);
+      const sonuc = await supabaseBolumEkle(bolum, req.body, req.userId);
       res.json(sonuc);
     } else {
       const data = jsonReadData();
@@ -333,7 +437,7 @@ app.post('/api/:bolum', async (req, res) => {
 });
 
 // ─── API: Bölüm Güncelle ────────────────────────────────────────────────
-app.put('/api/:bolum/:id', async (req, res) => {
+app.put('/api/:bolum/:id', authMiddleware, async (req, res) => {
   const { bolum, id } = req.params;
 
   if (!GECERLI_BOLUMLER.includes(bolum)) {
@@ -342,7 +446,7 @@ app.put('/api/:bolum/:id', async (req, res) => {
 
   try {
     if (useSupabase) {
-      const sonuc = await supabaseBolumGuncelle(bolum, id, req.body);
+      const sonuc = await supabaseBolumGuncelle(bolum, id, req.body, req.userId);
       res.json(sonuc);
     } else {
       const data = jsonReadData();
@@ -361,7 +465,7 @@ app.put('/api/:bolum/:id', async (req, res) => {
 });
 
 // ─── API: Bölüm Sil ─────────────────────────────────────────────────────
-app.delete('/api/:bolum/:id', async (req, res) => {
+app.delete('/api/:bolum/:id', authMiddleware, async (req, res) => {
   const { bolum, id } = req.params;
 
   if (!GECERLI_BOLUMLER.includes(bolum)) {
@@ -370,7 +474,7 @@ app.delete('/api/:bolum/:id', async (req, res) => {
 
   try {
     if (useSupabase) {
-      const sonuc = await supabaseBolumSil(bolum, id);
+      const sonuc = await supabaseBolumSil(bolum, id, req.userId);
       res.json(sonuc);
     } else {
       const data = jsonReadData();
@@ -385,11 +489,11 @@ app.delete('/api/:bolum/:id', async (req, res) => {
 });
 
 // ─── API: Kategori Sil ───────────────────────────────────────────────────
-app.delete('/api/kategori/:id', async (req, res) => {
+app.delete('/api/kategori/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
   try {
     if (useSupabase) {
-      const sonuc = await supabaseKategoriSil(id);
+      const sonuc = await supabaseKategoriSil(id, req.userId);
       res.json(sonuc);
     } else {
       const data = jsonReadData();
