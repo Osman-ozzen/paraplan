@@ -2,42 +2,41 @@
 
 ## ✅ Tamamlananlar
 
-### GitHub (Osman-ozzen/paraplan)
-- [x] Repo oluşturuldu: https://github.com/Osman-ozzen/paraplan
-- [x] Tüm kod push'landı
+### Altyapı
+- [x] GitHub repo: https://github.com/Osman-ozzen/paraplan
+- [x] Supabase projesi (Frankfurt, Free) — 7 tablo + indeksler
+- [x] Railway deploy: https://butce-takip-production.up.railway.app
+- [x] Environment variables: SUPABASE_URL, SERVICE_KEY, ANON_KEY
 
-### Supabase (paraplan)
-- [x] Proje oluşturuldu (Frankfurt, Free)
-- [x] SQL şeması çalıştırıldı (7 tablo + 8 indeks)
-- [x] `SUPABASE_URL` ve `SUPABASE_SERVICE_KEY` alındı
-- [x] Veriler başarıyla aktarıldı:
-  - kategoriler: 13
-  - kayitlar: 69
-  - borclar: 3
-  - aylik_giderler: 54
-  - hedefler: 2
-- [x] camelCase ↔ snake_case dönüşümü aktif
+### Veri
+- [x] 144 kayıt Supabase'e aktarıldı (13 kategori, 71 kayıt, 3 borç, 54 aylık gider, 3 hedef)
+- [x] Eski veriler mevcut kullanıcıya devredildi
 
-### Railway Deploy
-- [x] Uygulama canlı: https://butce-takip-production.up.railway.app
-- [x] Environment variables tanımlandı
-- [x] Tüm API endpoint'leri çalışıyor
+### Auth & Güvenlik
+- [x] Kullanıcı giriş/kayıt sistemi (Supabase Auth)
+- [x] user_id bazlı veri izolasyonu (her kullanıcı kendi verisini görür)
+- [x] Auth middleware (JWT doğrulama)
+- [x] Çıkış butonu
 
 ### Kod İyileştirmeleri
-- [x] `hedefler` tablosu desteği eklendi
-- [x] camelCase/snake_case dönüşümü (toSnakeCase, toCamelCase)
-- [x] Veri aktarım scripti kolon eşleme desteği
-- [x] Boş tarih hataları düzeltildi
+- [x] camelCase ↔ snake_case dönüşümü
+- [x] Hedefler tablosu desteği
+- [x] Veri aktarım scripti kolon eşleme + boş tarih düzeltmesi
+
+### Mobil & UI
+- [x] Responsive sidebar + mobil tab bar
+- [x] Grafik grid: 3 kolon → mobilde 1 kolon
+- [x] Pie chart mobil boyutlandırma
+- [x] Net Bakiye minimalist kart tasarımı
+- [x] Tooltip siyah arkaplan → beyaz temiz görünüm
+- [x] Genel overflow-x: hidden (yatay kaydırma önleme)
+- [x] Bu Ay kategori dağılımı mobil düzeni (2 kolon liste)
+
+---
 
 ## 📋 Gelecek İçin Fikirler
 
-### Mobil
-- iOS/Android için Capacitor build alınabilir
-- `npm run mobile:android` ile APK üretilebilir
-
-### Geliştirme
-- E-Ticaret ve Şirket Gider modülleri doldurulabilir
-- Yeni özellik eklemek için: `git add . && git commit -m "mesaj" && git push`
+Yeni özellikler ve geliştirmeler aşağıdaki raporda detaylandırılmıştır.
 
 ---
 
