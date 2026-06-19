@@ -1,60 +1,50 @@
-# ⏸️ Kaldığımız Yer — 16 Haziran 2026
+# ✅ Proje Canlı — 19 Haziran 2026
 
 ## ✅ Tamamlananlar
 
-### Kod Değişiklikleri
-- **Tooltip:** Ana Defter → "Bu Ay" kartında hover bilgi balonu (gelir/gider/net)
-- **Net Bakiye:** Raporlar'daki pasta grafiği → net değer kartı (negatif değer sorunu çözüldü)
-- **Electron:** `base: './'` ile beyaz ekran sorunu düzeltildi
-- **API:** Production'da aynı origin kullanacak şekilde düzeltildi (`api.js`)
+### GitHub (Osman-ozzen/paraplan)
+- [x] Repo oluşturuldu: https://github.com/Osman-ozzen/paraplan
+- [x] Tüm kod push'landı
 
-### Deploy Altyapısı (Render + Supabase)
-- `@supabase/supabase-js` kurulu
-- `supabase-schema.sql` — 6 tablo + indeksler hazır
-- `lib/supabase.js` — Bağlantı modülü
-- `server/index.js` — JSON + Supabase ikili mod desteği (env var'a göre)
-- `scripts/veri-aktar.js` — JSON → Supabase veri taşıma
-- `render.yaml` — Supabase env var'ları eklendi
-- `.env.example` — Ortam değişkeni şablonu
-- `DEPLOY.md` — Adım adım deploy kılavuzu
-- `package.json` — Yeni script'ler (`veri-aktar`, `deploy`)
-- **Git commit:** Tüm değişiklikler commit'lendi (`8581788`)
+### Supabase (paraplan)
+- [x] Proje oluşturuldu (Frankfurt, Free)
+- [x] SQL şeması çalıştırıldı (7 tablo + 8 indeks)
+- [x] `SUPABASE_URL` ve `SUPABASE_SERVICE_KEY` alındı
+- [x] Veriler başarıyla aktarıldı:
+  - kategoriler: 13
+  - kayitlar: 69
+  - borclar: 3
+  - aylik_giderler: 54
+  - hedefler: 2
+- [x] camelCase ↔ snake_case dönüşümü aktif
 
-## 📋 Kalan İşler
+### Railway Deploy
+- [x] Uygulama canlı: https://butce-takip-production.up.railway.app
+- [x] Environment variables tanımlandı
+- [x] Tüm API endpoint'leri çalışıyor
 
-### 1. GitHub Repo Oluştur
-```bash
-# https://github.com/new → "butce-takip" repo'su oluştur
-git remote add origin https://github.com/KULLANICI_ADIN/butce-takip.git
-git branch -M main
-git push -u origin main
-```
+### Kod İyileştirmeleri
+- [x] `hedefler` tablosu desteği eklendi
+- [x] camelCase/snake_case dönüşümü (toSnakeCase, toCamelCase)
+- [x] Veri aktarım scripti kolon eşleme desteği
+- [x] Boş tarih hataları düzeltildi
 
-### 2. Supabase Projesi Aç
-- [supabase.com](https://supabase.com) → Yeni proje (Frankfurt, free)
-- SQL Editor'de `supabase-schema.sql` çalıştır
-- Settings > API'den `SUPABASE_URL` ve `SUPABASE_SERVICE_KEY` al
+## 📋 Gelecek İçin Fikirler
 
-### 3. Verileri Aktar
-- `.env` dosyasına Supabase bilgilerini yaz
-- `npm run veri-aktar` çalıştır
+### Mobil
+- iOS/Android için Capacitor build alınabilir
+- `npm run mobile:android` ile APK üretilebilir
 
-### 4. Render'a Deploy
-- [render.com](https://render.com) → GitHub bağla
-- Blueprint ile deploy et (`render.yaml` otomatik okunur)
-- Render dashboard'da `SUPABASE_URL` ve `SUPABASE_SERVICE_KEY` gir
-
-### 5. Canlı Test
-- Render URL'sini aç → tüm özellikleri test et
-- Mobilde PWA kurulumu dene
+### Geliştirme
+- E-Ticaret ve Şirket Gider modülleri doldurulabilir
+- Yeni özellik eklemek için: `git add . && git commit -m "mesaj" && git push`
 
 ---
 
 ## 🔗 Önemli Linkler
 | Kaynak | Adres |
 |--------|-------|
-| Proje dizini | `/Users/macair/butce-takip/` |
-| Yedek düzeni | `/Users/macair/projeler/butce-takip/` |
-| Deploy kılavuzu | `DEPLOY.md` |
-| SQL şeması | `supabase-schema.sql` |
-| Sunucu kodu | `server/index.js` |
+| Canlı Uygulama | https://butce-takip-production.up.railway.app |
+| GitHub Repo | https://github.com/Osman-ozzen/paraplan |
+| Supabase Dashboard | https://supabase.com/dashboard/project/gtgrugmtxcmbmzjljwri |
+| Proje dizini | `/Users/macair/projeler/butce-takip/` |
