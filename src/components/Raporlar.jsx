@@ -238,13 +238,13 @@ export default function Raporlar({ kategoriler, kayitlar }) {
       </div>
 
       {/* Alt Sıra - Çizgi Grafik + Bakiye */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 18 }}>
-        <div className="grafik-alani" style={{ marginBottom: 0 }}>
+      <div className="grafik-grid-2">
+        <div className="grafik-alani">
           <div className="grafik-baslik" style={{ marginBottom: 8 }}>
             <h3>Bakiye Trendi</h3>
           </div>
           {barVerisi.length === 0 ? (
-            <div className="bos-mesaj" style={{ padding: 20 }}>Veri yok</div>
+            <div className="bos-mesaj">Veri yok</div>
           ) : (
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={barVerisi}>
@@ -259,7 +259,7 @@ export default function Raporlar({ kategoriler, kayitlar }) {
           )}
         </div>
 
-        <div className="grafik-alani" style={{ marginBottom: 0 }}>
+        <div className="grafik-alani">
           <div className="grafik-baslik" style={{ marginBottom: 12 }}>
             <h3>Net Bakiye (Kar/Zarar)</h3>
           </div>

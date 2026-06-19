@@ -459,6 +459,94 @@ td.tutar, th.tutar { text-align: right; }
   margin-bottom: 0;
 }
 
+/* Grafik grid - 2 kolon, mobilde 1 kolon */
+.grafik-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.grafik-grid-2 .grafik-alani {
+  margin-bottom: 0;
+}
+
+/* Grafik içi boş mesaj */
+.bos-mesaj {
+  text-align: center;
+  padding: 30px 20px;
+  color: var(--text-light);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Recharts gelişmiş stiller */
+.grafik-alani .recharts-bar-rectangle {
+  transition: opacity 0.2s;
+}
+.grafik-alani .recharts-bar-rectangle:hover {
+  opacity: 0.8;
+}
+.grafik-alani .recharts-line-dot {
+  transition: r 0.2s;
+  cursor: pointer;
+}
+.grafik-alani .recharts-line-dot:hover {
+  r: 5 !important;
+}
+.grafik-alani .recharts-cartesian-grid-horizontal line {
+  stroke-dasharray: 4 4;
+}
+.grafik-alani .recharts-default-tooltip {
+  border-radius: 8px !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-md) !important;
+  padding: 8px 12px !important;
+}
+.grafik-alani .recharts-tooltip-label {
+  font-weight: 700 !important;
+  font-size: 11px !important;
+  color: var(--text) !important;
+  margin-bottom: 4px !important;
+}
+.grafik-alani .recharts-tooltip-item {
+  font-size: 11px !important;
+  padding: 2px 0 !important;
+}
+
+/* Yüzde satırları - AnaSayfa */
+.yuzde-satir {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+.yuzde-cizgi {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--bg-alt);
+  overflow: hidden;
+}
+.yuzde-dolu {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+  min-width: 4px;
+}
+.yuzde-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  min-width: 50px;
+}
+.yuzde-deger {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  min-width: 80px;
+  text-align: right;
+}
+
 .grafik-tur-secimi {
   display: flex; gap: 3px;
   background: var(--bg-alt); padding: 3px;
@@ -750,7 +838,7 @@ td.tutar, th.tutar { text-align: right; }
 
   /* Sabit periyot kart mobil */
   div[style*="overflowX: auto"] { -webkit-overflow-scrolling: touch; }
-  div[style*="flex: 0 0 130px"] { flex: 0 0 110px !important; padding: 8px 10px !important; }
+  div[style*="flex: 0 0 130px"] { flex: 0 0 100px !important; padding: 6px 8px !important; }
 
   /* Platform seçici mobil */
   div[style*="gap: 6px"][style*="flexWrap: wrap"] { gap: 4px !important; }
@@ -1424,6 +1512,10 @@ td.tutar, th.tutar { text-align: right; }
     grid-template-columns: 1fr !important;
     gap: 12px !important;
   }
+  .grafik-grid-2 {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
 
   /* ─── Mobil Grafik Düzeltmeleri ────────────────────────────────────── */
   .grafik-alani {
@@ -1520,10 +1612,37 @@ td.tutar, th.tutar { text-align: right; }
     max-width: 100% !important;
   }
 
+  /* Pie chart container mobilde küçült */
+  .pie-container {
+    max-width: 140px !important;
+    height: 140px !important;
+  }
+  .pie-liste {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
   /* Borç durumu pie chart + liste mobilde alt alta */
   div[style*="flex: 1"][style*="minWidth: 160"] {
     width: 100% !important;
     min-width: 0 !important;
+  }
+
+  /* Yüzde satırları mobil */
+  .yuzde-satir {
+    gap: 6px !important;
+    padding: 4px 0 !important;
+  }
+  .yuzde-label {
+    font-size: 10px !important;
+    min-width: 40px !important;
+  }
+  .yuzde-deger {
+    font-size: 10px !important;
+    min-width: 70px !important;
+  }
+  .yuzde-cizgi {
+    height: 6px !important;
   }
 
   /* Tablo kaydırmayı düzgün yap */

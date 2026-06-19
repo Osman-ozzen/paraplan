@@ -276,7 +276,7 @@ export default function AnaSayfa({ kategoriler, kayitlar, kayitSil, sonEklenenId
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
-            <div style={{ width: 180, height: 160 }}>
+            <div className="pie-container" style={{ width: 180, height: 160 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie data={[
@@ -291,7 +291,7 @@ export default function AnaSayfa({ kategoriler, kayitlar, kayitSil, sonEklenenId
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div style={{ flex: 1, minWidth: 160 }}>
+            <div className="pie-liste" style={{ flex: 1, minWidth: 160 }}>
               <YuzdeSatir renk="#10b981" label="Ödenen" deger={borcVerisi.odenen} toplam={borcVerisi.toplam} />
               <YuzdeSatir renk="#ef4444" label="Kalan" deger={borcVerisi.bekleyen} toplam={borcVerisi.toplam} />
             </div>
@@ -313,7 +313,7 @@ export default function AnaSayfa({ kategoriler, kayitlar, kayitSil, sonEklenenId
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
-            <div style={{ width: 180, height: 160 }}>
+            <div className="pie-container" style={{ width: 180, height: 160 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie data={[
@@ -328,7 +328,7 @@ export default function AnaSayfa({ kategoriler, kayitlar, kayitSil, sonEklenenId
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div style={{ flex: 1, minWidth: 160 }}>
+            <div className="pie-liste" style={{ flex: 1, minWidth: 160 }}>
               <YuzdeSatir renk="#10b981" label="Gelir" deger={sabitGiderVerisi.gelir.toplam} toplam={sabitGiderVerisi.gelir.toplam + sabitGiderVerisi.gider.toplam} />
               <YuzdeSatir renk="#ef4444" label="Gider" deger={sabitGiderVerisi.gider.toplam} toplam={sabitGiderVerisi.gelir.toplam + sabitGiderVerisi.gider.toplam} />
             </div>
@@ -891,14 +891,12 @@ export default function AnaSayfa({ kategoriler, kayitlar, kayitSil, sonEklenenId
 function YuzdeSatir({ renk, label, deger, toplam }) {
   const yuzde = toplam > 0 ? ((deger / toplam) * 100).toFixed(1) : 0;
   return (
-    <div style={{ marginBottom: 8 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
-        <span style={{ fontWeight: 600 }}>{label}</span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{tl(deger)} (%{yuzde})</span>
+    <div className="yuzde-satir">
+      <span className="yuzde-label">{label}</span>
+      <div className="yuzde-cizgi">
+        <div className="yuzde-dolu" style={{ width: `${yuzde}%`, background: renk }} />
       </div>
-      <div style={{ height: 8, background: '#f1f5f9', borderRadius: 4, overflow: 'hidden' }}>
-        <div style={{ width: `${yuzde}%`, height: '100%', background: renk, borderRadius: 4, transition: 'width 0.5s' }} />
-      </div>
+      <span className="yuzde-deger">{tl(deger)} (%{yuzde})</span>
     </div>
   );
 }
