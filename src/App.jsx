@@ -275,6 +275,37 @@ export default function App() {
     raporlar: 'Raporlar', kategoriler: 'Hesap Planı',
   };
 
+  // ─── Klavye Kısayolları ───────────────────────────────────────────────────
+  useEffect(() => {
+    const handler = (e) => {
+      // Ctrl/Cmd + K → Hızlı Kayıt
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setAktifSekme('ekle'); }
+      // Ctrl/Cmd + 1-8 → Sekmeler
+      const sekmeHaritasi = { '1': 'anasayfa', '2': 'ekle', '3': 'borclar', '4': 'eticaret', '5': 'aylikGider', '6': 'hedefler', '7': 'raporlar', '8': 'kategoriler' };
+      if ((e.metaKey || e.ctrlKey) && sekmeHaritasi[e.key]) { e.preventDefault(); setAktifSekme(sekmeHaritasi[e.key]); }
+      // Escape → Mobil menüyü kapat
+      if (e.key === 'Escape') { setMobileMenuAcik(false); setDuzenlenecekKayit(null); }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  // ─── CSV Dışa Aktar ───────────────────────────────────────────────────────
+  const csvDisaAktar = useCallback(() => {
+    const basliklar = ['Tarih', 'Tür', 'Kategori', 'Tutar', 'Açıklama'];
+    const satirlar = kayitlar.map(k => {
+      const kat = kategoriler.find(kat => kat.id === k.kategoriId);
+      return [k.tarih, k.tur, kat?.ad || '-', k.tutar, k.aciklama || ''].join(',');
+    });
+    const csv = [basliklar.join(','), ...satirlar].join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `paraplan-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    bildirimGoster('CSV dosyası indirildi');
+  }, [kayitlar, kategoriler, bildirimGoster]);
+
   // ─── Auth yükleniyor ──────────────────────────────────────────────────────
   if (authYukleniyor) {
     return <YukleniyorSpinner />;
@@ -326,13 +357,24 @@ export default function App() {
         </ul>
 
         <div className="sidebar-alt">
+          {/* Kısayol İpuçları */}
+          <div className="sidebar-kisayol" style={{ fontSize: 9, color: 'rgba(255,255,255,0.25)', marginBottom: 6, lineHeight: 1.6 }}>
+            <span>⌘K Hızlı Kayıt</span> · <span>⌘1-8 Sekme</span>
+          </div>
           {/* Tema Toggle */}
           <div className="tema-toggle-grup">
             <button className={`tema-btn ${tema === 'light' ? 'aktif' : ''}`} onClick={() => temaDegistir('light')} title="Aydınlık Mod">☀️</button>
             <button className={`tema-btn ${tema === 'dark' ? 'aktif' : ''}`} onClick={() => temaDegistir('dark')} title="Karanlık Mod">🌙</button>
             <button className={`tema-btn ${tema === 'system' ? 'aktif' : ''}`} onClick={() => temaDegistir('system')} title="Sistem">💻</button>
           </div>
-          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 4 }}>v3.0 • {saat}</p>
+          {/* Dışa Aktar */}
+          <button onClick={csvDisaAktar}
+            style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: 10, cursor: 'pointer', fontFamily: 'inherit', padding: '6px 0', marginTop: 8, borderRadius: 6, width: '100%', transition: 'all 0.2s' }}
+            onMouseEnter={e => { e.target.style.background = 'rgba(255,255,255,0.12)'; e.target.style.color = 'rgba(255,255,255,0.7)'; }}
+            onMouseLeave={e => { e.target.style.background = 'rgba(255,255,255,0.06)'; e.target.style.color = 'rgba(255,255,255,0.4)'; }}>
+            📥 CSV İndir
+          </button>
+          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 4 }}>v3.1 • {saat}</p>
           <button onClick={() => { localStorage.clear(); window.location.reload(); }}
             style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 10, cursor: 'pointer', fontFamily: 'inherit', padding: 0, marginTop: 4 }}>
             Çıkış
@@ -350,10 +392,19 @@ export default function App() {
           <span className="mobile-baslik">{sekmeAdlari[aktifSekme] || 'ParaPlan'}</span>
           <span style={{ width: 30 }} />
         </div>
-        {/* Bildirim */}
+        {/* Bildirim — Animated Toast */}
         {bildirim && (
-          <div className={`bildirim ${bildirim.tur}`}>
-            {bildirim.mesaj}
+          <div className={`toast toast-${bildirim.tur || 'basarili'}`}>
+            <span className="toast-ikon">
+              {bildirim.tur === 'hata' ? '❌' : bildirim.tur === 'uyari' ? '⚠️' : '✅'}
+            </span>
+            <span className="toast-mesaj">{bildirim.mesaj}</span>
+            {bildirim.geriAl && (
+              <button className="toast-geri-al" onClick={() => { bildirim.geriAl(); setBildirim(null); }}>
+                Geri Al
+              </button>
+            )}
+            <button className="toast-kapat" onClick={() => setBildirim(null)}>✕</button>
           </div>
         )}
 
