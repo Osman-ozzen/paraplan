@@ -5,7 +5,16 @@ const { DEFAULT_KATEGORILER, idOlustur } = require('../config/constants');
 const DATA_DIR = path.join(__dirname, '..', '..', 'data');
 const DATA_PATH = path.join(DATA_DIR, 'butce-verisi.json');
 
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+// Sadece Supabase yoksa data dizini oluştur (Railway izin sorunu önlemi)
+function ensureDataDir() {
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY) return; // Supabase modunda gerek yok
+  try {
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  } catch {
+    // Silent fail — Supabase modunda dosya erişimi gerekmez
+  }
+}
+ensureDataDir();
 
 function getDefaultData() {
   return {
