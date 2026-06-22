@@ -17,7 +17,7 @@ Object.keys(networks).forEach((iface) => {
 });
 
 // Başlat
-const HOST = isProd ? '0.0.0.0' : '127.0.0.1';
+const HOST = '0.0.0.0'; // Railway/Render için 0.0.0.0 gerekli
 const { useSupabase } = require('./services/supabase.service');
 
 app.listen(PORT, HOST, () => {
