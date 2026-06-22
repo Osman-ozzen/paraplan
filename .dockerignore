@@ -1,0 +1,17 @@
+node_modules/
+dist/
+release/
+data/
+.env
+.env.*
+!.env.example
+.git/
+.github/
+*.md
+*.log
+.DS_Store
+coverage/
+build/
+android/
+ios/
+designs/

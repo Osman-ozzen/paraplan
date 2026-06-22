@@ -1,16 +1,29 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import AnaSayfa from './components/AnaSayfa';
-import GelirGiderEkle from './components/GelirGiderEkle';
-import Raporlar from './components/Raporlar';
-import Kategoriler from './components/Kategoriler';
-import Borclar from './components/Borclar';
-import ETicaret from './components/ETicaret';
-import AylikGiderler from './components/AylikGiderler';
-import Hedefler from './components/Hedefler';
-import AuthPage from './components/AuthPage';
+import React, { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { useAuth } from './contexts/AuthContext';
 import api from './utils/api';
 import './App.css';
+
+// ─── Lazy Loading (Code Splitting) ──────────────────────────────────────────
+// Her sayfa ayrı chunk'a bölünür — ilk yükleme ~250KB yerine ~650KB
+const AnaSayfa = lazy(() => import('./components/AnaSayfa'));
+const GelirGiderEkle = lazy(() => import('./components/GelirGiderEkle'));
+const Raporlar = lazy(() => import('./components/Raporlar'));
+const Kategoriler = lazy(() => import('./components/Kategoriler'));
+const Borclar = lazy(() => import('./components/Borclar'));
+const ETicaret = lazy(() => import('./components/ETicaret'));
+const AylikGiderler = lazy(() => import('./components/AylikGiderler'));
+const Hedefler = lazy(() => import('./components/Hedefler'));
+const AuthPage = lazy(() => import('./components/AuthPage'));
+
+// ─── Yükleniyor Göstergesi ──────────────────────────────────────────────────
+function YukleniyorSpinner() {
+  return (
+    <div className="yukleniyor-ekrani">
+      <div className="yukleniyor-spinner"></div>
+      <p>ParaPlan yükleniyor...</p>
+    </div>
+  );
+}
 
 // ─── ID Oluşturucu ─────────────────────────────────────────────────────────
 function idOlustur() {
@@ -234,27 +247,21 @@ export default function App() {
 
   // ─── Auth yükleniyor ──────────────────────────────────────────────────────
   if (authYukleniyor) {
-    return (
-      <div className="yukleniyor-ekrani">
-        <div className="yukleniyor-spinner"></div>
-        <p>ParaPlan yükleniyor...</p>
-      </div>
-    );
+    return <YukleniyorSpinner />;
   }
 
   // ─── Giriş yapılmamışsa Auth sayfası ──────────────────────────────────────
   if (!user) {
-    return <AuthPage />;
+    return (
+      <Suspense fallback={<YukleniyorSpinner />}>
+        <AuthPage />
+      </Suspense>
+    );
   }
 
   // ─── Yükleniyor ───────────────────────────────────────────────────────────
   if (yukleniyor) {
-    return (
-      <div className="yukleniyor-ekrani">
-        <div className="yukleniyor-spinner"></div>
-        <p>ParaPlan yükleniyor...</p>
-      </div>
-    );
+    return <YukleniyorSpinner />;
   }
 
   // ─── Render ───────────────────────────────────────────────────────────────
@@ -319,56 +326,58 @@ export default function App() {
             <h2>{sekmeAdlari[aktifSekme]}</h2>
           </div>
 
-          {aktifSekme === 'anasayfa' && (
-            <AnaSayfa
-              kategoriler={kategoriler}
-              kayitlar={kayitlar}
-              kayitSil={kayitSil}
-              sonEklenenId={sonEklenenId}
-              duzenleBaslat={duzenleBaslat}
-              borclar={borclar}
-              aylikGiderler={aylikGiderler}
-              hedefler={hedefler}
-              setAktifSekme={setAktifSekme}
-              setSeciliAy={setSeciliAy}
-            />
-          )}
-          {aktifSekme === 'ekle' && (
-            <GelirGiderEkle
-              kategoriler={kategoriler}
-              kayitEkle={kayitEkle}
-              kayitGuncelle={kayitGuncelle}
-              duzenlenecekKayit={duzenlenecekKayit}
-              duzenleIptal={duzenleIptal}
-            />
-          )}
-          {aktifSekme === 'borclar' && (
-            <Borclar data={borclar} api={api.borclar} setData={setBorclar} />
-          )}
-          {aktifSekme === 'eticaret' && (
-            <ETicaret data={eticaret} api={api.eticaret} />
-          )}
-          {aktifSekme === 'aylikGider' && (
-            <AylikGiderler data={aylikGiderler} api={api.aylikGiderler}
-              kayitEkle={kayitEkle} kategoriler={kategoriler}
-              seciliAy={seciliAy} setSeciliAy={setSeciliAy} />
-          )}
-          {aktifSekme === 'hedefler' && (
-            <Hedefler data={hedefler} api={api.hedefler} />
-          )}
-          {aktifSekme === 'raporlar' && (
-            <Raporlar
-              kategoriler={kategoriler}
-              kayitlar={kayitlar}
-            />
-          )}
-          {aktifSekme === 'kategoriler' && (
-            <Kategoriler
-              kategoriler={kategoriler}
-              kategoriEkle={kategoriEkle}
-              kategoriSil={kategoriSil}
-            />
-          )}
+          <Suspense fallback={<YukleniyorSpinner />}>
+            {aktifSekme === 'anasayfa' && (
+              <AnaSayfa
+                kategoriler={kategoriler}
+                kayitlar={kayitlar}
+                kayitSil={kayitSil}
+                sonEklenenId={sonEklenenId}
+                duzenleBaslat={duzenleBaslat}
+                borclar={borclar}
+                aylikGiderler={aylikGiderler}
+                hedefler={hedefler}
+                setAktifSekme={setAktifSekme}
+                setSeciliAy={setSeciliAy}
+              />
+            )}
+            {aktifSekme === 'ekle' && (
+              <GelirGiderEkle
+                kategoriler={kategoriler}
+                kayitEkle={kayitEkle}
+                kayitGuncelle={kayitGuncelle}
+                duzenlenecekKayit={duzenlenecekKayit}
+                duzenleIptal={duzenleIptal}
+              />
+            )}
+            {aktifSekme === 'borclar' && (
+              <Borclar data={borclar} api={api.borclar} setData={setBorclar} />
+            )}
+            {aktifSekme === 'eticaret' && (
+              <ETicaret data={eticaret} api={api.eticaret} />
+            )}
+            {aktifSekme === 'aylikGider' && (
+              <AylikGiderler data={aylikGiderler} api={api.aylikGiderler}
+                kayitEkle={kayitEkle} kategoriler={kategoriler}
+                seciliAy={seciliAy} setSeciliAy={setSeciliAy} />
+            )}
+            {aktifSekme === 'hedefler' && (
+              <Hedefler data={hedefler} api={api.hedefler} />
+            )}
+            {aktifSekme === 'raporlar' && (
+              <Raporlar
+                kategoriler={kategoriler}
+                kayitlar={kayitlar}
+              />
+            )}
+            {aktifSekme === 'kategoriler' && (
+              <Kategoriler
+                kategoriler={kategoriler}
+                kategoriEkle={kategoriEkle}
+                kategoriSil={kategoriSil}
+              />
+            )}
+          </Suspense>
         </div>
       </main>
 
