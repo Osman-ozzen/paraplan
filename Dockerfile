@@ -26,6 +26,9 @@ RUN npm ci --omit=dev --ignore-scripts
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/server ./server
 
+# data dizini için izin oluştur
+RUN mkdir -p /app/data && chown -R appuser:appgroup /app
+
 HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1
 

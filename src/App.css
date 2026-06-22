@@ -1,65 +1,267 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   ParaPlan - Kişisel Finans Yönetimi
-   Tasarım: Koyu lacivert + mor gradient, temiz kartlar, modern tipografi
+   ParaPlan v3 — Profesyonel Tema Sistemi
+   Modern Fintech: Glassmorphism, Micro-interactions, Dark/Light Mode
    ═══════════════════════════════════════════════════════════════════════════ */
 
-:root {
-  --bg-dark: #0f0f1a;
+/* ─── LIGHT THEME (Varsayılan) ──────────────────────────────────────────── */
+:root, [data-theme="light"] {
+  /* Katmanlı Arka Planlar */
+  --bg-body: #f8f9fc;
   --bg-card: #ffffff;
-  --bg-alt: #f5f5fa;
-  --bg-page: #f0f0f7;
+  --bg-elevated: #ffffff;
+  --bg-sidebar: #0f172a;
+  --bg-input: #f1f5f9;
+  --bg-hover: #f1f5f9;
+  --bg-overlay: rgba(0,0,0,0.4);
 
-  --primary: #4f46e5;
-  --primary-dark: #3730a3;
-  --primary-light: #eef2ff;
-  --primary-gradient: linear-gradient(135deg, #4f46e5, #7c3aed);
+  /* Secure Green Palet — 2026 Fintech Trend */
+  --primary: #0d9488;
+  --primary-hover: #0f766e;
+  --primary-light: #ccfbf1;
+  --primary-gradient: linear-gradient(135deg, #0d9488, #14b8a6);
+  --primary-gradient-radial: radial-gradient(135deg, #0d9488, #06b6d4);
 
-  --secondary-gradient: linear-gradient(135deg, #7c3aed, #a855f7);
-  --accent-gradient: linear-gradient(135deg, #0ea5e9, #06b6d4);
+  /* Accent Renkler */
+  --accent-gold: #d4a843;
+  --accent-gold-light: #fef3c7;
+  --accent-purple: #8b5cf6;
+  --accent-purple-light: #ede9fe;
 
-  --success: #10b981;
+  /* Durum Renkleri — Muted (agresif değil) */
+  --success: #059669;
   --success-light: #d1fae5;
-  --danger: #ef4444;
+  --success-bg: rgba(5,150,105,0.08);
+  --danger: #dc6b6b;
   --danger-light: #fee2e2;
-  --warning: #f59e0b;
+  --danger-bg: rgba(220,107,107,0.08);
+  --warning: #d97706;
   --warning-light: #fef3c7;
+  --warning-bg: rgba(217,119,6,0.08);
+  --info: #0ea5e9;
+  --info-light: #e0f2fe;
 
+  /* Metin Hiyerarşisi */
   --text: #0f172a;
   --text-secondary: #475569;
-  --text-light: #94a3b8;
-  --text-on-dark: #e2e8f0;
+  --text-tertiary: #94a3b8;
+  --text-inverse: #f8fafc;
+  --text-on-primary: #ffffff;
 
+  /* Sınır ve Ayraç */
   --border: #e2e8f0;
   --border-light: #f1f5f9;
+  --border-focus: #0d9488;
 
-  --radius: 12px;
-  --radius-sm: 8px;
-  --radius-xs: 6px;
+  /* Gölgeler — Katmanlı */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.06), 0 2px 4px -2px rgba(0,0,0,0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.06), 0 4px 6px -4px rgba(0,0,0,0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.06), 0 8px 10px -6px rgba(0,0,0,0.04);
 
-  --shadow: 0 1px 3px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 20px rgba(0,0,0,0.06);
-  --shadow-lg: 0 8px 40px rgba(0,0,0,0.08);
-  --shadow-xl: 0 20px 60px rgba(0,0,0,0.1);
+  /* Glassmorphism */
+  --glass-bg: rgba(255,255,255,0.7);
+  --glass-border: rgba(255,255,255,0.3);
+  --glass-blur: 20px;
 
-  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'SF Mono', 'JetBrains Mono', 'Menlo', monospace;
+  /* Radius */
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-xs: 8px;
+  --radius-pill: 100px;
 
-  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Chart Paletleri */
+  --chart-1: #0d9488;
+  --chart-2: #8b5cf6;
+  --chart-3: #f59e0b;
+  --chart-4: #ef4444;
+  --chart-5: #06b6d4;
+  --chart-6: #ec4899;
+  --chart-7: #10b981;
+  --chart-8: #6366f1;
 }
 
+/* ─── DARK THEME ────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  /* Katmanlı Karanlık (Layered Darkness — OLED dostu) */
+  --bg-body: #0b0b0f;
+  --bg-card: #16161d;
+  --bg-elevated: #1e1e28;
+  --bg-sidebar: #08080c;
+  --bg-input: #1e1e28;
+  --bg-hover: #252530;
+  --bg-overlay: rgba(0,0,0,0.7);
+
+  /* Primary — Dark'da daha parlak */
+  --primary: #14b8a6;
+  --primary-hover: #2dd4bf;
+  --primary-light: rgba(20,184,166,0.15);
+  --primary-gradient: linear-gradient(135deg, #14b8a6, #06b6d4);
+  --primary-gradient-radial: radial-gradient(135deg, #14b8a6, #22d3ee);
+
+  /* Accent */
+  --accent-gold: #fbbf24;
+  --accent-gold-light: rgba(251,191,36,0.12);
+  --accent-purple: #a78bfa;
+  --accent-purple-light: rgba(167,139,250,0.12);
+
+  /* Durum */
+  --success: #34d399;
+  --success-light: rgba(52,211,153,0.12);
+  --success-bg: rgba(52,211,153,0.08);
+  --danger: #f87171;
+  --danger-light: rgba(248,113,113,0.12);
+  --danger-bg: rgba(248,113,113,0.08);
+  --warning: #fbbf24;
+  --warning-light: rgba(251,191,36,0.12);
+  --warning-bg: rgba(251,191,36,0.08);
+  --info: #38bdf8;
+  --info-light: rgba(56,189,248,0.12);
+
+  /* Metin — Off-white (saf beyaz değil) */
+  --text: #e5e7eb;
+  --text-secondary: #9ca3af;
+  --text-tertiary: #6b7280;
+  --text-inverse: #0f172a;
+
+  /* Sınır */
+  --border: #2d2d3a;
+  --border-light: #222230;
+  --border-focus: #14b8a6;
+
+  /* Gölgeler — Dark'da daha güçlü */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -2px rgba(0,0,0,0.2);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.3), 0 4px 6px -4px rgba(0,0,0,0.2);
+  --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.4), 0 8px 10px -6px rgba(0,0,0,0.2);
+
+  /* Glassmorphism — Dark'da */
+  --glass-bg: rgba(22,22,29,0.75);
+  --glass-border: rgba(255,255,255,0.08);
+  --glass-blur: 20px;
+}
+
+/* ─── GLOBAL RESET ──────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: var(--font); background: var(--bg-page); color: var(--text); line-height: 1.5; -webkit-font-smoothing: antialiased; overflow-x: hidden; overflow-y: auto; height: 100vh; font-size: 13px; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg-body);
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  overflow-y: auto;
+  height: 100vh;
+  font-size: 13px;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
 #root { height: 100vh; }
 
+/* ─── YÜKLENİYOR EKRANI ────────────────────────────────────────────────── */
 .yukleniyor-ekrani {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  height: 100vh; gap: 14px; background: var(--bg-dark); color: white; font-size: 14px; font-weight: 500;
+  height: 100vh; gap: 14px; background: var(--bg-sidebar); color: white; font-size: 14px; font-weight: 500;
 }
 .yukleniyor-spinner {
   width: 44px; height: 44px; border: 3px solid rgba(255,255,255,0.15);
-  border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite;
+  border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── MİKRO-ETKİLEŞİMLER (Micro-Interactions) ──────────────────────────── */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideInRight { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes checkmark { 0% { stroke-dashoffset: 24; } 100% { stroke-dashoffset: 0; } }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+
+/* Skeleton Loading */
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-hover) 25%, var(--border-light) 50%, var(--bg-hover) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-xs);
+}
+
+/* Skeleton screen loading state */
+.yukleniyor-ekrani .skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  width: 300px;
+  margin-top: 20px;
+}
+.skeleton-card {
+  height: 80px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* ─── GLASSMORPHISM ─────────────────────────────────────────────────────── */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ─── TEMA TOGGLE ─────────────────────────────────────────────────────── */
+.tema-toggle-grup {
+  display: flex;
+  gap: 2px;
+  background: rgba(255,255,255,0.06);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+}
+.tema-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 5px 6px;
+  border-radius: var(--radius-xs);
+  transition: var(--transition);
+  opacity: 0.5;
+}
+.tema-btn:hover { opacity: 0.8; background: rgba(255,255,255,0.06); }
+.tema-btn.aktif { opacity: 1; background: rgba(255,255,255,0.12); box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+
+/* ─── PANEL — Kart Sistemi ──────────────────────────────────────────────── */
+.panel {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-light);
+  padding: 20px;
+  transition: var(--transition);
+  animation: fadeIn 0.3s ease;
+}
+.panel:hover { box-shadow: var(--shadow-md); }
+.panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.panel-title { font-size: 14px; font-weight: 600; color: var(--text); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    ANA DÜZEN
@@ -67,15 +269,16 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--text);
 .app { display: flex; height: 100vh; overflow: hidden; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   SİDEBAR - Koyu tema (meos.blog header gibi)
+   SİDEBAR — Katmanlı Koyu Tema
    ═══════════════════════════════════════════════════════════════════════════ */
 .sidebar {
   width: 230px;
-  background: var(--bg-dark);
+  background: var(--bg-sidebar);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   user-select: none;
+  border-right: 1px solid rgba(255,255,255,0.06);
 }
 
 .sidebar-logo {
@@ -143,7 +346,7 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--text);
 /* ═══════════════════════════════════════════════════════════════════════════
    İÇERİK
    ═══════════════════════════════════════════════════════════════════════════ */
-.ana-icerik { flex: 1; overflow-y: auto; background: var(--bg-page); }
+.ana-icerik { flex: 1; overflow-y: auto; background: var(--bg-body); }
 
 .icerik-alani {
   padding: 28px 32px;
@@ -234,7 +437,7 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--text);
 
 .panel-label {
   font-size: 10px; font-weight: 700;
-  color: var(--text-light);
+  color: var(--text-tertiary);
   text-transform: uppercase; letter-spacing: 0.5px;
   margin-bottom: 6px;
 }
@@ -386,7 +589,7 @@ table { width: 100%; border-collapse: collapse; font-size: 12px; }
 thead th {
   text-align: left; padding: 10px 16px;
   font-weight: 700; font-size: 10px;
-  color: var(--text-light);
+  color: var(--text-tertiary);
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
   text-transform: uppercase; letter-spacing: 0.5px;
@@ -397,7 +600,7 @@ tbody tr:last-child td { border-bottom: none; }
 tbody tr { transition: var(--transition); }
 tbody tr:hover td { background: #f5f3ff; }
 
-.tablo-kod { font-family: var(--font-mono); font-size: 10px; color: var(--text-light); font-weight: 600; }
+.tablo-kod { font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); font-weight: 600; }
 .tutar { font-weight: 700; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 td.tutar, th.tutar { text-align: right; }
 .deger-gelir { color: #059669 !important; }
@@ -474,7 +677,7 @@ td.tutar, th.tutar { text-align: right; }
 .bos-mesaj {
   text-align: center;
   padding: 30px 20px;
-  color: var(--text-light);
+  color: var(--text-tertiary);
   font-size: 12px;
   font-weight: 500;
 }
@@ -705,7 +908,7 @@ td.tutar, th.tutar { text-align: right; }
 .kategori-grup h3 {
   font-size: 10px; font-weight: 800;
   text-transform: uppercase; letter-spacing: 1px;
-  color: var(--text-light);
+  color: var(--text-tertiary);
   margin-bottom: 10px;
 }
 
@@ -900,7 +1103,7 @@ td.tutar, th.tutar { text-align: right; }
 
 .oneri-icon { font-size: 24px; }
 .oneri-ad { font-size: 11px; font-weight: 700; color: var(--text); }
-.oneri-tutar { font-size: 10px; font-weight: 600; color: var(--text-light); }
+.oneri-tutar { font-size: 10px; font-weight: 600; color: var(--text-tertiary); }
 
 /* ─── Hedef Kart Listesi ───────────────────────────────────────────────────── */
 .hedef-liste {
@@ -962,7 +1165,7 @@ td.tutar, th.tutar { text-align: right; }
 .hedef-tarih {
   font-size: 10px;
   font-weight: 500;
-  color: var(--text-light);
+  color: var(--text-tertiary);
   margin-top: 2px;
 }
 
@@ -1172,14 +1375,14 @@ td.tutar, th.tutar { text-align: right; }
 }
 
 .hedef-ayrac {
-  color: var(--text-light);
+  color: var(--text-tertiary);
   font-weight: 400;
 }
 
 .hedef-tutar {
   font-weight: 600;
   font-family: var(--font-mono);
-  color: var(--text-light);
+  color: var(--text-tertiary);
 }
 
 .hedef-kalan {
@@ -1271,7 +1474,7 @@ td.tutar, th.tutar { text-align: right; }
 .hedef-birikim-hizli-label {
   font-size: 9px;
   font-weight: 600;
-  color: var(--text-light);
+  color: var(--text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -1365,7 +1568,7 @@ td.tutar, th.tutar { text-align: right; }
 .mobile-tab-etiket {
   font-size: 9px;
   font-weight: 600;
-  color: var(--text-light);
+  color: var(--text-tertiary);
   transition: color 0.2s;
   white-space: nowrap;
 }

@@ -3,6 +3,19 @@ import { useAuth } from './contexts/AuthContext';
 import api from './utils/api';
 import './App.css';
 
+// ─── Tema Yönetimi ─────────────────────────────────────────────────────────
+function getSystemTheme() {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function getStoredTheme() {
+  return localStorage.getItem('paraplan-theme') || 'system';
+}
+function applyTheme(tema) {
+  const resolved = tema === 'system' ? getSystemTheme() : tema;
+  document.documentElement.setAttribute('data-theme', resolved);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', resolved === 'dark' ? '#0b0b0f' : '#f8f9fc');
+}
+
 // ─── Lazy Loading (Code Splitting) ──────────────────────────────────────────
 // Her sayfa ayrı chunk'a bölünür — ilk yükleme ~250KB yerine ~650KB
 const AnaSayfa = lazy(() => import('./components/AnaSayfa'));
@@ -33,6 +46,7 @@ function idOlustur() {
 // ─── App Bileşeni ───────────────────────────────────────────────────────────
 export default function App() {
   const { user, yukleniyor: authYukleniyor } = useAuth();
+  const [tema, setTema] = useState(getStoredTheme);
   const [aktifSekme, setAktifSekme] = useState('anasayfa');
   const [kategoriler, setKategoriler] = useState([]);
   const [kayitlar, setKayitlar] = useState([]);
@@ -61,6 +75,22 @@ export default function App() {
   const [seciliAy, setSeciliAy] = useState(null);
   const [mobileMenuAcik, setMobileMenuAcik] = useState(false);
   const bildirimTimeoutRef = useRef(null);
+
+  // ─── Tema Değiştirme ─────────────────────────────────────────────────────
+  const temaDegistir = useCallback((yeniTema) => {
+    setTema(yeniTema);
+    localStorage.setItem('paraplan-theme', yeniTema);
+    applyTheme(yeniTema);
+  }, []);
+
+  // Tema değişikliklerini dinle
+  useEffect(() => {
+    applyTheme(tema);
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = () => { if (tema === 'system') applyTheme('system'); };
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, [tema]);
 
   // ─── Veri Yükleme ─────────────────────────────────────────────────────────
   const verileriYukle = useCallback(async () => {
@@ -296,9 +326,15 @@ export default function App() {
         </ul>
 
         <div className="sidebar-alt">
-          <p>v1.0 • {saat}</p>
+          {/* Tema Toggle */}
+          <div className="tema-toggle-grup">
+            <button className={`tema-btn ${tema === 'light' ? 'aktif' : ''}`} onClick={() => temaDegistir('light')} title="Aydınlık Mod">☀️</button>
+            <button className={`tema-btn ${tema === 'dark' ? 'aktif' : ''}`} onClick={() => temaDegistir('dark')} title="Karanlık Mod">🌙</button>
+            <button className={`tema-btn ${tema === 'system' ? 'aktif' : ''}`} onClick={() => temaDegistir('system')} title="Sistem">💻</button>
+          </div>
+          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 4 }}>v3.0 • {saat}</p>
           <button onClick={() => { localStorage.clear(); window.location.reload(); }}
-            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 10, cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
+            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 10, cursor: 'pointer', fontFamily: 'inherit', padding: 0, marginTop: 4 }}>
             Çıkış
           </button>
         </div>

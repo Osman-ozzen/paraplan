@@ -17,7 +17,12 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="format-detection" content="telephone=no" />
     <meta name="touch-action" content="manipulation" />
-    <!-- Geliştirme modunda CSP yorum satırında; Electron üretim build'inde main.js'de ayarlanır -->
+    <!-- Tema Flash Önleme (FOUC) -->
+    <script>
+      (function(){var t=localStorage.getItem('paraplan-theme')||'system';
+      var d=(t==='system')?((window.matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'):t;
+      document.documentElement.setAttribute('data-theme',d);
+      })();</script>
     <title>ParaPlan</title>
     <style>
       /* ─── Temel ─── */
