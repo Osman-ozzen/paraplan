@@ -48,6 +48,7 @@ app.use(cors({
 }));
 
 // Body Parser
+app.set('trust proxy', 1); // Railway/Render proxy desteği
 app.use(express.json({ limit: '1mb' }));
 
 // Rate Limiting
