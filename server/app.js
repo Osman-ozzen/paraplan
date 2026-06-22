@@ -31,17 +31,18 @@ const CORS_ORIGINS = [
   'http://localhost:4173',
   'capacitor://localhost',
   'ionic://localhost',
-  'https://butce-takip-production.up.railway.app',
 ];
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin || CORS_ORIGINS.some(o => origin.startsWith(o))) {
-      cb(null, true);
-    } else if (isProd) {
-      cb(new Error('CORS: Bu kaynağa izin verilmiyor'));
-    } else {
-      cb(null, true);
-    }
+    // Originsiz isteklere izin ver (curl, server-to-server, PWA)
+    if (!origin) return cb(null, true);
+    // Localhost, capacitor ve ionic'e izin ver
+    if (CORS_ORIGINS.some(o => origin.startsWith(o))) return cb(null, true);
+    // Railway/Render domain'lerine izin ver
+    if (origin.includes('.up.railway.app') || origin.includes('.onrender.com')) return cb(null, true);
+    // Geliştirme modunda herkese açık
+    if (!isProd) return cb(null, true);
+    cb(new Error('CORS: Bu kaynağa izin verilmiyor'));
   },
   credentials: true,
 }));
