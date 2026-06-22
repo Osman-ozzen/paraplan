@@ -32,32 +32,36 @@ export function AuthProvider({ children }) {
 
   // Kayıt ol
   const register = useCallback(async (email, password) => {
-    const data = await authFetch('/api/auth/register', {
+    const raw = await authFetch('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
+    // Yeni format: { basarili, veri: { user, session } } — eski: { user, session }
+    const data = raw.veri || raw;
     if (data.session) {
       setToken(data.session.access_token);
       setUser(data.user);
       localStorage.setItem(TOKEN_KEY, data.session.access_token);
       localStorage.setItem(USER_KEY, JSON.stringify(data.user));
     }
-    return data;
+    return raw;
   }, [authFetch]);
 
   // Giriş yap
   const login = useCallback(async (email, password) => {
-    const data = await authFetch('/api/auth/login', {
+    const raw = await authFetch('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
+    // Yeni format: { basarili, veri: { user, session } } — eski: { user, session }
+    const data = raw.veri || raw;
     if (data.session) {
       setToken(data.session.access_token);
       setUser(data.user);
       localStorage.setItem(TOKEN_KEY, data.session.access_token);
       localStorage.setItem(USER_KEY, JSON.stringify(data.user));
     }
-    return data;
+    return raw;
   }, [authFetch]);
 
   // Çıkış yap
