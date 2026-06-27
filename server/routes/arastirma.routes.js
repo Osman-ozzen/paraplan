@@ -69,11 +69,34 @@ const KATEGORI_BILGI = {
 };
 
 // ─── KATEGORİ TESPİTİ ────────────────────────────────────────────────────
+const KATEGORI_ESLESTIRME = {
+  'tişört': ['tisort', 'tişört', 't-shirt', 'tshirt', 'tee'],
+  'kulaklık': ['kulaklik', 'kulaklık', 'earbuds', 'headphone'],
+  'ayakkabı': ['ayakkabi', 'ayakkabı', 'shoe', 'sneaker', 'bot', 'terlik'],
+  'çanta': ['cantasi', 'çanta', 'canta', 'bag', 'backpack'],
+  'aksesuar': ['aksesuar', 'taki', 'takı', 'jewelry', 'accessory'],
+};
+
 function kategoriTespiti(query) {
-  const q = query.toLowerCase();
+  const q = query.toLowerCase()
+    .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's')
+    .replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c')
+    .replace(/İ/g, 'i').replace(/I/g, 'i');
+
+  // Önce doğrudan eşleşme
   for (const [anahtar, veri] of Object.entries(KATEGORI_BILGI)) {
     if (q.includes(anahtar)) return { ...veri, eslesenKategori: anahtar };
   }
+
+  // Sonra alternatif anahtar kelimelerle eşleşme
+  for (const [anahtar, alternatifler] of Object.entries(KATEGORI_ESLESTIRME)) {
+    for (const alt of alternatifler) {
+      if (q.includes(alt)) {
+        return { ...KATEGORI_BILGI[anahtar], eslesenKategori: anahtar };
+      }
+    }
+  }
+
   // Genel dönüşüm
   return {
     tur: 'Genel',
