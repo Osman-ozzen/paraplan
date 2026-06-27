@@ -31,6 +31,8 @@ const CORS_ORIGINS = [
   'http://localhost:4173',
   'capacitor://localhost',
   'ionic://localhost',
+  'https://meos.blog',
+  'http://meos.blog',
 ];
 app.use(cors({
   origin: (origin, cb) => {
