@@ -87,6 +87,9 @@ app.use('/api/veri', veriRoutes);
 app.use('/api', bolumRoutes);
 app.use('/api/kategori', kategoriRoutes);
 
+const arastirmaRoutes = require('./routes/arastirma.routes');
+app.use('/api/arastirma', arastirmaRoutes);
+
 // Health Check
 app.get('/health', (req, res) => {
   const { useSupabase, useAuth } = require('./services/supabase.service');
