@@ -2,149 +2,50 @@ const express = require('express');
 const router = express.Router();
 
 const cache = new Map();
-const CACHE_TTL = 3 * 60 * 1000;
+const CACHE_TTL = 5 * 60 * 1000;
 
-const PLATFORMS = {
-  trendyol: {
-    name: 'Trendyol',
-    icon: '🛍️',
-    type: 'pazar-yeri',
-    url: (q) => `https://www.trendyol.com/sr?q=${encodeURIComponent(q)}`,
-  },
-  hepsiburada: {
-    name: 'Hepsiburada',
-    icon: '🏪',
-    type: 'pazar-yeri',
-    url: (q) => `https://www.hepsiburada.com/ara?q=${encodeURIComponent(q)}`,
-  },
-  amazon: {
-    name: 'Amazon.com.tr',
-    icon: '📦',
-    type: 'pazar-yeri',
-    url: (q) => `https://www.amazon.com.tr/s?k=${encodeURIComponent(q)}`,
-  },
-  etsy: {
-    name: 'Etsy',
-    icon: '🎨',
-    type: 'global',
-    url: (q) => `https://www.etsy.com/search?q=${encodeURIComponent(q)}`,
-  },
-  google: {
-    name: 'Google Alışveriş',
-    icon: '🔍',
-    type: 'arama',
-    url: (q) => `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(q)}`,
-  },
-  cimri: {
-    name: 'Cimri',
-    icon: '💲',
-    type: 'fiyat',
-    url: (q) => `https://www.cimri.com/arama?q=${encodeURIComponent(q)}`,
-  },
-};
-
-function extractStructuredData(html) {
-  const result = { urunler: [], fiyatlar: [], puanlar: [], toplamUrun: 0, kategori: '' };
-
-  // 1. JSON-LD verisi
-  const jsonLdMatches = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi) || [];
-  for (const match of jsonLdMatches) {
-    try {
-      const jsonStr = match.replace(/<\/?script[^>]*>/gi, '');
-      const data = JSON.parse(jsonStr);
-
-      if (data['@type'] === 'Product' && data.name) {
-        result.urunler.push({
-          ad: data.name,
-          fiyat: data.offers?.price || data.offers?.lowPrice || '',
-          paraBirimi: data.offers?.priceCurrency || 'TRY',
-          puan: data.aggregateRating?.ratingValue || '',
-          yorumSayisi: data.aggregateRating?.reviewCount || '',
-          gorsel: data.image || '',
-          marka: data.brand?.name || '',
-          link: data.url || '',
-        });
-      }
-      if (data['@type'] === 'ItemList' && data.itemListElement) {
-        result.toplamUrun = parseInt(data.numberOfItems) || data.itemListElement.length;
-        for (const item of data.itemListElement) {
-          if (item.item && item.item.name) {
-            result.urunler.push({
-              ad: item.item.name,
-              fiyat: item.item.offers?.price || '',
-              paraBirimi: item.item.offers?.priceCurrency || '',
-              puan: item.item.aggregateRating?.ratingValue || '',
-              gorsel: item.item.image?.[0] || item.item.image || '',
-              link: item.item.url || '',
-            });
-          }
-        }
-      }
-      if (data['@type'] === 'BreadcrumbList' && data.itemListElement) {
-        const last = data.itemListElement[data.itemListElement.length - 1];
-        if (last?.name) result.kategori = last.name;
-      }
-    } catch {}
-  }
-
-  // 2. Meta description'dan ürün bilgisi
-  if (result.urunler.length === 0) {
-    const metaDesc = html.match(/<meta[^>]*name="description"[^>]*content="([^"]+)"/i);
-    if (metaDesc?.[1]) {
-      const desc = metaDesc[1];
-      const urunSayisi = desc.match(/(\d+)\+?\s*(ürün|sonuç|ürün bulundu|sonuç bulundu)/i);
-      if (urunSayisi) result.toplamUrun = parseInt(urunSayisi[1]);
-    }
-  }
-
-  // 3. Sayfa içeriğinden fiyat ara
-  if (result.fiyatlar.length === 0) {
-    const fiyatMatches = [...new Set([
-      ...html.matchAll(/(?:price|fiyat|Price)["\s:]*(?:["\s:]*)(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)\s*(?:TL|₺|TRY|USD|\$)/gi),
-      ...html.matchAll(/(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)\s*(?:TL|₺|TRY)/g),
-    ].flat())].slice(0, 5);
-    result.fiyatlar = fiyatMatches.map(m => m[0] || m[1]).filter(Boolean);
-  }
-
-  // 4. Toplam ürün sayısı
-  if (!result.toplamUrun) {
-    const sayi = html.match(/(\d{2,})\+?\s*(ürün|sonuç|sonuç|product|result)/i);
-    if (sayi) result.toplamUrun = parseInt(sayi[1]);
-  }
-
-  // 5. Kategori bilgisi (title'dan)
-  if (!result.kategori) {
-    const title = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-    if (title?.[1]) {
-      const cleanTitle = title[1].replace(/\s*[-|–|]\s*(Trendyol|Hepsiburada|Amazon|Etsy).*$/i, '').trim();
-      result.kategori = cleanTitle;
-    }
-  }
-
-  result.urunler = result.urunler.slice(0, 8);
-  return result;
-}
-
-async function fetchPage(url) {
+// DuckDuckGo HTML araması (daha açık)
+async function ddgSearch(query, region = 'tr-tr') {
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 10000);
+    const url = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}&kl=${region}`;
     const res = await fetch(url, {
       signal: ctrl.signal,
-      redirect: 'follow',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
-        'Accept-Encoding': 'identity',
-      },
+      headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' },
     });
     clearTimeout(timer);
-    if (!res.ok) return null;
-    return await res.text();
-  } catch { return null; }
+    if (!res.ok) return [];
+    const html = await res.text();
+    const results = [];
+    const regex = /class="result__a"[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?class="result__snippet"[^>]*>([\s\S]*?)<\/(?:td|div)/g;
+    let match;
+    while ((match = regex.exec(html)) !== null && results.length < 8) {
+      let link = match[1];
+      try { link = new URL(link, 'https://duckduckgo.com').searchParams.get('uddg') || link; } catch {}
+      results.push({
+        link,
+        title: match[2].replace(/<[^>]+>/g, '').trim(),
+        snippet: match[3].replace(/<[^>]+>/g, '').trim(),
+      });
+    }
+    return results;
+  } catch { return []; }
 }
 
+// Fiyat bilgisi çıkar
+function extractPrices(text) {
+  const prices = [...text.matchAll(/(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)\s*(TL|₺|TRY|USD|\$|€)/gi)];
+  const nums = prices.map(p => parseFloat(p[1].replace('.', '').replace(',', '.'))).filter(n => n > 0 && n < 100000);
+  return {
+    min: nums.length ? Math.min(...nums) : null,
+    max: nums.length ? Math.max(...nums) : null,
+    avg: nums.length ? Math.round(nums.reduce((a, b) => a + b, 0) / nums.length) : null,
+    count: nums.length,
+  };
+}
+
+// Ana araştırma endpoint'i
 router.get('/:kategori', async (req, res) => {
   const kategori = req.params.kategori?.trim();
   if (!kategori || kategori.length < 2) {
@@ -154,55 +55,151 @@ router.get('/:kategori', async (req, res) => {
   const cacheKey = kategori.toLowerCase();
   const cached = cache.get(cacheKey);
   if (cached && Date.now() - cached.time < CACHE_TTL) {
-    return res.json({ basarili: true, kaynak: 'cache', zaman: new Date(cached.time).toISOString(), ...cached.data });
+    return res.json({ basarili: true, kaynak: 'cache', ...cached.data });
   }
 
   try {
-    const entries = Object.entries(PLATFORMS);
-    const results = await Promise.allSettled(
-      entries.map(async ([key, platform]) => {
-        const html = await fetchPage(platform.url(kategori));
-        if (!html) return { key, platform, data: { durum: 'erişilemedi', urunler: [] } };
-        const parsed = extractStructuredData(html);
-        return { key, platform, data: parsed };
-      })
-    );
+    // Paralel aramalar - farklı açılardan veri topla
+    const [pazarVerisi, fiyatVerisi, trendVerisi, rekabetVerisi, seoVerisi] = await Promise.all([
+      ddgSearch(`${kategori} e-ticaret satış verileri 2026 popüler ürün`),
+      ddgSearch(`${kategori} fiyat analizi ortalama fiyat aralığı TL`),
+      ddgSearch(`${kategori} trend yükselen 2026 google trends`),
+      ddgSearch(`${kategori} rekabet分析 pazar payı en çok satan marka`),
+      ddgSearch(`${kategori} seo anahtar kelime arama hacmi`),
+    ]);
 
-    const platformlar = {};
-    results.forEach(r => {
-      if (r.status === 'fulfilled') {
-        const { key, platform, data } = r.value;
-        const urunler = data.urunler.map(u => ({
-          ad: u.ad,
-          fiyat: u.fiyat ? `${u.fiyat} ${u.paraBirimi || ''}`.trim() : null,
-          puan: u.puan || null,
-          yorumSayisi: u.yorumSayisi || null,
-          gorsel: u.gorsel || null,
-          marka: u.marka || null,
-          link: u.link || platform.url(kategori),
-        }));
+    // Platform arama linkleri
+    const platformlar = {
+      trendyol: {
+        ad: 'Trendyol',
+        icon: '🛍️',
+        renk: '#8B5CF6',
+        tip: 'Pazar Yeri (#1)',
+        link: `https://www.trendyol.com/sr?q=${encodeURIComponent(kategori)}`,
+        pay: '%35-38',
+        komisyon: '%19-22',
+        not: 'Moda/giyimde lider. 45M+ kullanıcı.',
+        guclu: 'Moda, kozmetik, ev & yaşam',
+        zayif: 'Elektronikte daha düşük',
+      },
+      hepsiburada: {
+        ad: 'Hepsiburada',
+        icon: '🏪',
+        renk: '#10B981',
+        tip: 'Pazar Yeri (#2)',
+        link: `https://www.hepsiburada.com/ara?q=${encodeURIComponent(kategori)}`,
+        pay: '%18-20',
+        komisyon: '%14-18',
+        not: 'Elektronik ve beyaz eşyada lider.',
+        guclu: 'Elektronik, beyaz eşya, yüksek sepet',
+        zayif: 'Moda pazarında düşük',
+      },
+      amazon: {
+        ad: 'Amazon.com.tr',
+        icon: '📦',
+        renk: '#F59E0B',
+        tip: 'Pazar Yeri (#3)',
+        link: `https://www.amazon.com.tr/s?k=${encodeURIComponent(kategori)}`,
+        pay: '%7-15',
+        komisyon: '%8-15',
+        not: 'En düşük komisyon. Global satış imkanı.',
+        guclu: 'Kitap, elektronik, global markalar',
+        zayif: 'Yerel marka bilinirliği düşük',
+      },
+      etsy: {
+        ad: 'Etsy',
+        icon: '🎨',
+        renk: '#EC4899',
+        tip: 'Global El Yapımı',
+        link: `https://www.etsy.com/search?q=${encodeURIComponent(kategori)}`,
+        pay: 'Global 80M+ alıcı',
+        komisyon: '%6.5 + %3',
+        not: 'Özel tasarım ve el yapımı ürünlerde güçlü.',
+        guclu: 'Niş ürünler, özel tasarım, vintage',
+        zayif: 'Toplu üretim için uygun değil',
+      },
+      n11: {
+        ad: 'N11',
+        icon: '🎯',
+        renk: '#6366F1',
+        tip: 'Pazar Yeri (#4)',
+        link: `https://www.n11.com/arama?q=${encodeURIComponent(kategori)}`,
+        pay: '%8',
+        komisyon: '%12-17',
+        not: 'Butik ve niş ürünlerde güçlü.',
+        guclu: 'Hobi, bahçe, oto aksesuar, butik',
+        zayif: 'Genel pazar payı düşük',
+      },
+      cimri: {
+        ad: 'Cimri',
+        icon: '💲',
+        renk: '#FF6B35',
+        tip: 'Fiyat Karşıl.',
+        link: `https://www.cimri.com/arama?q=${encodeURIComponent(kategori)}`,
+        pay: '10M+ aylık',
+        komisyon: '-',
+        not: 'Fiyat karşılaştırması. Rekabet analizi için ideal.',
+        guclu: 'Fiyat analizi, tüketici davranışı',
+        zayif: 'Doğrudan satış platformu değil',
+      },
+      google: {
+        ad: 'Google Alışveriş',
+        icon: '🔍',
+        renk: '#4285F4',
+        tip: 'Arama Motoru',
+        link: `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(kategori)}`,
+        pay: 'En geniş kitle',
+        komisyon: '-',
+        not: 'SEO ve SEM ile görünürlük kritik.',
+        guclu: 'Trafik kaynağı, görünürlük',
+        zayif: 'Doğrudan satış değil',
+      },
+      instagram: {
+        ad: 'Instagram',
+        icon: '📸',
+        renk: '#E1306C',
+        tip: 'Sosyal Ticaret',
+        link: `https://www.instagram.com/explore/tags/${encodeURIComponent(kategori.replace(/\s+/g, ''))}/`,
+        pay: '%70 ürün araştırması',
+        komisyon: 'DM satışı',
+        not: "Türkiye'de en güçlü sosyal ticaret kanalı.",
+        guclu: 'Marka bilinirliği, görsel satış',
+        zayif: 'Uygulama içi ödeme desteklenmiyor',
+      },
+    };
 
-        platformlar[key] = {
-          ad: platform.name,
-          icon: platform.icon,
-          tip: platform.type,
-          link: platform.url(kategori),
-          durum: urunler.length > 0 ? 'bulundu' : (data.durum || 'bulunamadı'),
-          toplamUrun: data.toplamUrun || urunler.length || 0,
-          kategori: data.kategori || '',
-          urunler: urunler,
-          fiyatlar: data.fiyatlar || [],
-        };
+    // Sonuçları derle
+    const tumSonuclar = [...pazarVerisi, ...fiyatVerisi, ...trendVerisi, ...rekabetVerisi, ...seoVerisi];
+    const toplamFiyat = tumSonuclar.reduce((acc, r) => {
+      const f = extractPrices(r.title + ' ' + r.snippet);
+      if (f.count > 0) {
+        acc.fiyatlar.push(...r.snippet.match(/(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)\s*(TL|₺|TRY|USD|\$|€)/gi) || []);
+        acc.min = acc.min ? Math.min(acc.min, f.min) : f.min;
+        acc.max = acc.max ? Math.max(acc.max, f.max) : f.max;
+        acc.toplam += f.count;
       }
-    });
+      return acc;
+    }, { fiyatlar: [], min: null, max: null, toplam: 0 });
 
     const responseData = {
       kategori,
       zaman: new Date().toISOString(),
-      toplamPlatform: entries.length,
-      bulunanPlatform: Object.values(platformlar).filter(p => p.durum === 'bulundu').length,
       platformlar,
+      aramaSonuclari: {
+        pazar: pazarVerisi.slice(0, 5),
+        fiyat: fiyatVerisi.slice(0, 5),
+        trend: trendVerisi.slice(0, 5),
+        rekabet: rekabetVerisi.slice(0, 5),
+        seo: seoVerisi.slice(0, 5),
+      },
+      fiyatAnalizi: {
+        min: toplamFiyat.min,
+        max: toplamFiyat.max,
+        bulunanKaynak: toplamFiyat.toplam,
+      },
+      platformSayisi: Object.keys(platformlar).length,
     };
+
     cache.set(cacheKey, { time: Date.now(), data: responseData });
     res.json({ basarili: true, kaynak: 'canli', ...responseData });
   } catch (err) {
